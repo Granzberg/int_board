@@ -1,8 +1,9 @@
-## python
 import sys
+import re
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QStackedWidget, QSizePolicy
-from PyQt6.QtCore import Qt, QTimer, QTime
+from PyQt6.QtCore import Qt, QTimer, QTime, QUrl
 from PyQt6.QtGui import QPixmap, QFont
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 from datetime import datetime
 
 class UniversityKiosk(QWidget):
@@ -102,12 +103,10 @@ class UniversityKiosk(QWidget):
         # Створюємо сторінки
         self.page_home = self.create_page_content(
             "Вітаємо в Ізмаїлький Державни Гуманітарний Університет!\n\nОберіть потрібний розділ меню ліворуч, щоб отримати інформацію.\n\nСьогодні: 22 травня 2026 року.")
-        self.page_schedule = self.create_page_content(
-            "Розклад занять:\n\n1 пара: 08:30 - 10:05\n2 пара: 10:20 - 11:55\n3 пара: 12:10 - 13:45\n\nДля перегляду груп підійдіть до деканату.")
+        self.page_schedule = self.create_schedule_page()
         self.page_map = self.create_interactive_map_page()
-
         self.page_contacts = self.create_page_content(
-            "Контакти університету:\n\n📞 Приймальна комісія: +38 (044) 123-45-67\n📧 Email: info@university.edu.ua\n📍 Адреса: вул. Університетська, 1")
+            "Контакти університету:\n\n📞 Приймальна комісія: +38 (044) 123-45-67\n📧 Email: info@university.edu.ua\n📍 Адреса: вул. Іллі Репіна, 12")
 
         # Додаємо сторінки в наш контейнер (вони отримують індекси 0, 1, 2, 3)
         self.pages_container.addWidget(self.page_home)  # Індекс 0
@@ -143,6 +142,187 @@ class UniversityKiosk(QWidget):
         now = datetime.now()
         current_date = f"{now.day} {months[now.month]} {now.year}"
         self.date_label.setText(current_date)
+
+        # 11927
+
+    def create_schedule_page(self):
+        """
+        Завантажує оригінальну сторінку розкладу ІДГУ
+        та адаптує її під інтерфейс тач-кіоску без парсингу.
+        """
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(0, 0, 0, 0)  # Максимум простору для сайту
+
+        # Створюємо вбудований браузер
+        self.schedule_web = QWebEngineView()
+
+        # Використовуємо ваше точне посилання на розклад ІДГУ
+        self.schedule_url_str = "https://idgu.edu.ua/rozklad"
+        self.schedule_web.setUrl(QUrl(self.schedule_url_str))
+
+        # Збільшуємо масштаб сторінки на 35%, щоб посилання на факультети
+        # та таблиці розкладу були великими і зручними для натискання пальцями
+        self.schedule_web.setZoomFactor(1.35)
+
+        # Підключаємо захист кіоску: фільтруємо всі кліки по посиланнях
+        self.schedule_web.page().acceptNavigationRequest = self.filter_schedule_links
+
+        # Після повного завантаження сторінки робимо скролбар зручним для тачу
+        self.schedule_web.loadFinished.connect(self.optimize_schedule_view)
+
+        layout.addWidget(self.schedule_web)
+        return page
+
+    def filter_schedule_links(self, url, nav_type, is_main_frame):
+        """Блокує перехід на сторонні ресурси, дозволяючи лише сайт ІДГУ"""
+        if url.toString() == "about:blank":
+            return True
+
+        # Дозволяємо переходи ТІЛЬКИ в межах офіційного сайту та піддоменів ІДГУ
+        allowed_domain = "idgu.edu.ua"
+
+        if allowed_domain in url.host():
+            return True  # Студент може вільно переходити по розкладу факультетів
+
+        print(f"🔒 Кіоск заблокував зовнішній перехід: {url.toString()}")
+        return False  # Сторонній сайт не відкриється
+
+    def optimize_schedule_view(self, success):
+        """Очищає сторінку, адаптує календар та замінює кольори сайту (зокрема #ddd) під тему кіоску"""
+        if success:
+            # Встановлюємо темний фон для самого віджета браузера, поки сторінка рендериться
+            self.schedule_web.setStyleSheet("background-color: #1F2937;")
+
+            # 1. Застосовуємо стилі скролбару, ховаємо меню та ПЕРЕФАРБОВУЄМО сайт
+            base_css = """
+                let style = document.createElement('style');
+                style.innerHTML = `
+                    /* Товсті скролбари для тач-панелі */
+                    ::-webkit-scrollbar { width: 28px !important; height: 28px !important; }
+                    ::-webkit-scrollbar-thumb { background: #3B82F6 !important; border-radius: 14px !important; }
+                    ::-webkit-scrollbar-track { background: #1F2937 !important; }
+
+                    /* Повністю ховаємо непотрібні блоки та меню .nav_m */
+                    #masthead, footer, .top-header, .navigation-bar, 
+                    #mega-menu-wrap-primary-menu, .nav_m, .mobile-menu, .menu-toggle { 
+                        display: none !important; 
+                        visibility: hidden !important;
+                    }
+
+                    /* === СТИЛІЗАЦІЯ ПІД ТЕМНУ ТЕМУ КІОСКУ === */
+                    /* Перефарбовуємо головний фон сторінки та блоки */
+                    body, html, #page, #content, .site-content, .main-content-inner {
+                        background-color: #1F2937 !important; /* Колір вашої правої панелі */
+                        color: #FFFFFF !important;
+                    }
+
+                    /* Робимо весь текст на сторінці білим або світло-сірим */
+                    p, span, h1, h2, h3, h4, h5, h6, a, td, th, li {
+                        color: #FFFFFF !important;
+                    }
+
+                    /* Стилізуємо посилання, щоб вони виділялися */
+                    a {
+                        color: #60A5FA !important; 
+                        text-decoration: none !important;
+                    }
+                    a:hover, a:active {
+                        color: #3B82F6 !important;
+                    }
+
+                    /* Таблиці розкладу: робимо темний фон для клітинок */
+                    table, tr, td, th {
+                        background-color: #111827 !important; /* Трохи темніший для контрасту таблиць */
+                        border: 1px solid #1F2937 !important; /* ЗАМІНА #ddd НА #1F2937 ДЛЯ МЕЖ */
+                        color: #FFFFFF !important;
+                    }
+
+                    /* Глобальна заміна світлих меж та фонів, де міг бути колір #ddd */
+                    div, table, td, th, tr, input, select, .ui-widget-content {
+                        border-color: #1F2937 !important; /* Заміна кольору ліній */
+                    }
+
+                    /* Поля вибору дати / вводу */
+                    input, select {
+                        background-color: #374151 !important;
+                        color: #FFFFFF !important;
+                        border: 2px solid #1F2937 !important; /* ЗАМІНА МЕЖІ ПОЛІВ НА #1F2937 */
+                        border-radius: 8px !important;
+                        padding: 10px !important;
+                        font-size: 18px !important;
+                    }
+
+                    /* Спеціальні стилі для календаря, коли він СТАЄ видимим */
+                    .kiosk-datepicker-active {
+                        position: fixed !important;
+                        top: 20% !important;
+                        left: 50% !important;
+                        transform: translateX(-50%) !important;
+                        z-index: 999999 !important;
+                        background: #0f172A !important; /* Темний фон для вікна календаря */
+                        border: 3px solid #3B82F6 !important;
+                        border-radius: 15px !important;
+                        padding: 20px !important;
+                        box-shadow: 0px 10px 30px rgba(0,0,0,0.7) !important;
+                        width: 80% !important;
+                        max-width: 600px !important;
+                    }
+
+                    .kiosk-datepicker-active table {
+                        width: 100% !important;
+                        font-size: 24px !important;
+                        border: 1px solid #1F2937 !important;
+                    }
+
+                    .kiosk-datepicker-active .ui-datepicker-header {
+                        background: #1F2937 !important;
+                        border: none !important;
+                    }
+
+                    .kiosk-datepicker-active .ui-datepicker-prev,
+                    .kiosk-datepicker-active .ui-datepicker-next {
+                        padding: 10px !important;
+                        background: #374151 !important;
+                        border-radius: 8px !important;
+                    }
+                `;
+                document.head.appendChild(style);
+            """
+            self.schedule_web.page().runJavaScript(base_css)
+
+            # 2. Розумний спостерігач для календаря (залишається без змін)
+            js_observer = """
+                function adaptDatePicker() {
+                    let datePicker = document.querySelector("#ui-datepicker-div");
+                    if (datePicker) {
+                        if (datePicker.style.display === 'block') {
+                            datePicker.classList.add("kiosk-datepicker-active");
+                        } else {
+                            datePicker.classList.remove("kiosk-datepicker-active");
+                        }
+                    }
+                }
+
+                let observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.attributeName === "style") {
+                            adaptDatePicker();
+                        }
+                    });
+                });
+
+                let checkExist = setInterval(function() {
+                    let datePicker = document.querySelector("#ui-datepicker-div");
+                    if (datePicker) {
+                        observer.observe(datePicker, { attributes: true });
+                        adaptDatePicker();
+                        clearInterval(checkExist);
+                    }
+                    document.querySelectorAll('.nav_m, .mobile-navigation').forEach(el => el.remove());
+                }, 200);
+            """
+            self.schedule_web.page().runJavaScript(js_observer)
 
     def create_page_content(self, text):
         """Допоміжна функція для швидкого створення текстових сторінок"""
