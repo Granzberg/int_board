@@ -1,5 +1,4 @@
 import sys
-import re
 from PyQt6.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QVBoxLayout, QHBoxLayout, QStackedWidget, QSizePolicy
 from PyQt6.QtCore import Qt, QTimer, QTime, QUrl
 from PyQt6.QtGui import QPixmap, QFont
@@ -127,6 +126,12 @@ class UniversityKiosk(QWidget):
         self.btn_contacts.clicked.connect(lambda: self.pages_container.setCurrentIndex(4))
         self.btn_exit.clicked.connect(self.close)  # Закриття програми
 
+        # ---------------- ТАЙМЕР БЕЗДІЯЛЬНОСТІ ----------------
+        self.inactivity_timer = QTimer(self)
+        self.inactivity_timer.setInterval(90000)  # 90000 мілісекунд = 90 секунд
+        self.inactivity_timer.timeout.connect(self.return_to_home)
+        self.inactivity_timer.start()
+
     def update_clock(self):
         """Функція, яка викликається щосекунди для оновлення часу та дати"""
         # Отримуємо поточний час та форматуємо його (Години:Хвилини:Секунди)
@@ -144,10 +149,7 @@ class UniversityKiosk(QWidget):
         self.date_label.setText(current_date)
 
     def create_schedule_page(self):
-        """
-        Завантажує оригінальну сторінку розкладу ІДГУ
-        та адаптує її під інтерфейс тач-кіоску без парсингу.
-        """
+        """ Завантажує оригінальну сторінку розкладу ІДГУ та адаптує її під інтерфейс тач-кіоску без парсингу."""
         page = QWidget()
         layout = QVBoxLayout(page)
         layout.setContentsMargins(0, 0, 0, 0)  # Максимум простору для сайту
@@ -334,6 +336,20 @@ class UniversityKiosk(QWidget):
         """Дозволяє закрити повноекранний режим кнопкою Esc на клавіатурі"""
         if event.key() == Qt.Key.Key_Escape:
             self.close()
+
+    def mousePressEvent(self, event):
+        """Викликається автоматично при кожному кліку/тачу по екрану кіоску."""
+        super().mousePressEvent(event)
+        # Якщо користувач активний — перезапускаємо таймер заново з позначки 45 сек
+        self.inactivity_timer.start()
+
+    def return_to_home(self):
+        """Спрацьовує, коли таймер добігає кінця."""
+        # Перевіряємо, чи кіоск зараз НЕ на головній сторінці (індекс 0)
+        if self.pages_container.currentIndex() != 0:
+            self.pages_container.setCurrentIndex(0) # Скидаємо сторінку на головну
+            print("⏳ Екран кіоску автоматично скинуто на головну сторінку.")
+
 
     def create_interactive_map_page(self):
         """Створює сторінку інтерактивної мапи з кнопками перемикання поверхів."""
