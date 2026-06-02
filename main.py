@@ -12,10 +12,7 @@ class UniversityKiosk(QWidget):
 
         # Налаштування для IT Box: на весь екран, без рамок, поверх інших вікон
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-        self.showFullScreen()
-
-        # ---- НАЛАШТУВАННЯ РЕЖИМУ КІОСКУ ----
-        self.showFullScreen()  # Розгортає програму на весь екран
+        self.showMaximized()
 
         # За бажанням: блокуємо зміну розмірів вікна користувачем
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
@@ -340,25 +337,29 @@ class UniversityKiosk(QWidget):
             self.close()
 
     def create_interactive_map_page(self):
-        """Варіант із кнопками, де виправлено баг нескінченного дублювання"""
+        """Створює сторінку інтерактивної мапи з кнопками перемикання поверхів."""
         page = QWidget()
         layout = QVBoxLayout(page)
 
-        title = QLabel("ПЛАН НАВЧАЛЬНОГО КОРПУСУ")
+        title = QLabel("🗺 ПЛАН НАВЧАЛЬНОГО КОРПУСУ")
         title.setFont(QFont("Segoe UI", 26, QFont.Weight.Bold))
         title.setStyleSheet("color: #3B82F6; margin-bottom: 20px;")
         layout.addWidget(title)
 
+        # Контейнер для кнопок поверхів (горизонтальний)
         floor_buttons_layout = QHBoxLayout()
         floor_buttons_layout.setSpacing(15)
         layout.addLayout(floor_buttons_layout)
 
+        # Елемент для відображення карти
         self.map_image_label = QLabel()
         self.map_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.map_image_label.setStyleSheet(
-            "background-color: #111827; border: 2px dashed #374151; border-radius: 15px; margin-top: 20px;")
+            "background-color: #111827; border: 2px dashed #374151; border-radius: 15px; margin-top: 20px;"
+        )
         layout.addWidget(self.map_image_label, 1)
 
+        # Опис поверху нижче мапи
         self.map_description = QLabel()
         self.map_description.setFont(QFont("Segoe UI", 18))
         self.map_description.setWordWrap(True)
@@ -366,9 +367,19 @@ class UniversityKiosk(QWidget):
         layout.addWidget(self.map_description)
 
         floor_btn_style = """
-                  QPushButton { background-color: #374151; color: white; border: 2px solid #4B5563; border-radius: 10px; padding: 15px; font-size: 20px; }
-                  QPushButton:checked { background-color: #3B82F6; border-color: #60A5FA; }
-           """
+        QPushButton { 
+            background-color: #374151; 
+            color: white; 
+            border: 2px solid #4B5563; 
+            border-radius: 10px; 
+            padding: 15px; 
+            font-size: 20px; 
+        }
+        QPushButton:checked { 
+            background-color: #3B82F6; 
+            border-color: #60A5FA; 
+        }
+        """
 
         floors_data = [
             (1, "floor1.jpg", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.", "1 Поверх"),
@@ -382,156 +393,167 @@ class UniversityKiosk(QWidget):
 
         self.floor_buttons = []
 
-        def create_info_sidebar_page(self):
-            """Варіант, де кнопки меню розміщені зліва, а вся текстова інформація — справа"""
-            page = QWidget()
-            # Головний маркап сторінки — тепер вертикальний тільки для загального заголовка
-            main_layout = QVBoxLayout(page)
-
-            # 1. Головний заголовок сторінки (вгорі)
-            title = QLabel("ІНФОРМАЦІЙНИЙ РОЗДІЛ")
-            title.setFont(QFont("Segoe UI", 26, QFont.Weight.Bold))
-            title.setStyleSheet("color: #3B82F6; margin-bottom: 20px;")
-            main_layout.addWidget(title)
-
-            # 2. Створюємо горизонтальний контейнер для розділення: Ліво / Право
-            content_layout = QHBoxLayout()
-            content_layout.setSpacing(30)  # Відступ між кнопками та текстом
-            main_layout.addLayout(content_layout)
-
-            # --- ЛІВА ПАНЕЛЬ (КНОПКИ) ---
-            left_buttons_layout = QVBoxLayout()
-            left_buttons_layout.setSpacing(15)
-            # Вирівнюємо кнопки по верхньому краю, щоб вони не розтягувалися на всю висоту
-            left_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-            content_layout.addLayout(left_buttons_layout)
-
-            # --- ПРАВА ПАНЕЛЬ (ІНФОРМАЦІЯ) ---
-            right_info_layout = QVBoxLayout()
-            right_info_layout.setSpacing(15)
-            content_layout.addLayout(right_info_layout, 1)  # Пріоритет розтягування (1) віддаємо інформації
-
-            # Віджети для правої панелі (Головний текст та Опис нижче)
-            self.info_main_text = QLabel("Оберіть розділ зліва для перегляду деталей.")
-            self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.info_main_text.setWordWrap(True)
-            self.info_main_text.setFont(QFont("Segoe UI", 20))
-            self.info_main_text.setStyleSheet(
-                "background-color: #111827; border: 2px dashed #374151; "
-                "border-radius: 15px; padding: 20px; color: white;"
-            )
-            right_info_layout.addWidget(self.info_main_text, 1)
-
-            self.info_description = QLabel()
-            self.info_description.setFont(QFont("Segoe UI", 18))
-            self.info_description.setWordWrap(True)
-            self.info_description.setStyleSheet("color: #9CA3AF; margin-top: 10px;")
-            right_info_layout.addWidget(self.info_description)
-
-            # Стиль для вертикальних кнопок зліва
-            sidebar_btn_style = """
-                QPushButton { 
-                    background-color: #374151; 
-                    color: white; 
-                    border: 2px solid #4B5563; 
-                    border-radius: 10px; 
-                    padding: 15px 25px; 
-                    font-size: 18px; 
-                    text-align: left; /* Текст на кнопках буде вирівняний по лівому краю */
-                    min-width: 250px;  /* Фіксована ширина для акуратності */
-                }
-                QPushButton:checked { 
-                    background-color: #3B82F6; 
-                    border-color: #60A5FA; 
-                }
-            """
-
-            # Дані для ваших нових кнопок (Індекс, Головний текст, Додатковий опис, Назва кнопки)
-            info_sections_data = [
-                (
-                    1,
-                    "Інформація про факультети та спеціальності університету...",
-                    "Додатково: Терміни навчання та ліцензійні обсяги.",
-                    "Факультети",
-                ),
-                (
-                    2,
-                    "Правила прийому 2026: Сертифікати НМТ, пільги, етапи вступу...",
-                    "Додатково: Контакти приймальної комісії.",
-                    "Приймальна комісія",
-                ),
-                (
-                    3,
-                    "Вартість навчання на контрактній основі за всіма напрямками...",
-                    "Додатково: Можливості оплати по семестрах.",
-                    "Вартість навчання",
-                ),
-                (
-                    4,
-                    "Студентське самоврядування, гуртки, секції та дозвілля...",
-                    "Додатково: Розклад роботи спортивних секцій.",
-                    "Студентське життя",
-                ),
-            ]
-
-            self.info_buttons = []
-
-            # Створення кнопок у циклі (динамічно, без дублювання та багів)
-            for index, main_txt, desc_txt, btn_title in info_sections_data:
-                btn = QPushButton(btn_title)
-                btn.setStyleSheet(sidebar_btn_style)
-                btn.setCheckable(True)
-
-                # Логіка кліку (оновлення текстових блоків справа)
-                btn.clicked.connect(
-                    lambda checked, mt=main_txt, dt=desc_txt, b=btn: self.on_info_button_clicked(
-                        mt, dt, b
-                    )
-                )
-
-                left_buttons_layout.addWidget(btn)
-                self.info_buttons.append(btn)
-
-            return page
-
-        # Допоміжний метод для обробки кліків (скидає активність інших кнопок і міняє текст)
-        def on_info_button_clicked(self, main_text, desc_text, clicked_button):
-            # Вимикаємо підсвічування на всіх інших кнопках цієї сторінки
-            for btn in self.info_buttons:
-                btn.setChecked(False)
-
-            # Вмикаємо підсвічування тільки на натиснутій
-            clicked_button.setChecked(True)
-
-            # Оновлюємо інформацію на панелі справа
-            self.info_main_text.setText(main_text)
-            self.info_description.setText(desc_text)
-
-        def show_floor(floor_num, img_path, description_text):
-            # Тільки міняємо стани вже існуючих кнопок
-            for index, btn in enumerate(self.floor_buttons):
-                btn.setChecked(index + 1 == floor_num)
-
-            pixmap = QPixmap(img_path)
-            if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(800, 550, Qt.AspectRatioMode.KeepAspectRatio,
-                                              Qt.TransformationMode.SmoothTransformation)
-                self.map_image_label.setPixmap(scaled_pixmap)
-            else:
-                self.map_image_label.setText(f"[ Картинку {img_path} не знайдено ]")
-            self.map_description.setText(description_text)
-
-        # ЦИКЛ НАЗОВНІ ФУНКЦІЇ — Створює кнопки всього ОДИН раз при ініціалізації
+        # ЦИКЛ ПЕРЕНЕСЕНО ВСЕРЕДИНУ МЕТОДУ (щоб уникнути витоку пам'яті та крашу 0xC0000005)
         for floor_num, img, desc, btn_text in floors_data:
             btn = QPushButton(btn_text)
             btn.setStyleSheet(floor_btn_style)
             btn.setCheckable(True)
-            btn.clicked.connect(lambda checked, f=floor_num, i=img, d=desc: show_floor(f, i, d))
+
+            # Використовуємо self.show_floor та зберігаємо контекст аргументів через lambda
+            btn.clicked.connect(lambda checked, f=floor_num, i=img, d=desc: self.show_floor(f, i, d))
+
             floor_buttons_layout.addWidget(btn)
             self.floor_buttons.append(btn)
 
-        show_floor(1, "floor1.jpg", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.")
+        # Ініціалізуємо карту першим поверхом при старті
+        self.show_floor(1, "floor1.jpg", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.")
+
         return page
+
+    def show_floor(self, floor_num, img_path, description_text):
+        """Оновлює стан кнопок мапи, завантажує та відображає картинку поверху."""
+        # Керуємо станом виділення кнопок поверхів
+        for index, btn in enumerate(self.floor_buttons):
+            btn.setChecked((index + 1) == floor_num)
+
+        pixmap = QPixmap(img_path)
+        if not pixmap.isNull():
+            scaled_pixmap = pixmap.scaled(
+                800, 550,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            self.map_image_label.setPixmap(scaled_pixmap)
+        else:
+            self.map_image_label.setText(f"[ Картинку {img_path} не знайдено ]")
+
+        self.map_description.setText(description_text)
+
+    def create_info_sidebar_page(self):
+        """Створює сторінку інформації з бічним меню."""
+        page = QWidget()
+        main_layout = QVBoxLayout(page)
+
+        title = QLabel("🏛 ІНФОРМАЦІЯ ПО СТРУКТУРІ УНІВЕРСИТЕТУ")
+        title.setFont(QFont("Segoe UI", 26, QFont.Weight.Bold))
+        title.setStyleSheet("color: #3B82F6; margin-bottom: 20px;")
+        main_layout.addWidget(title)
+
+        content_layout = QHBoxLayout()
+        content_layout.setSpacing(30)
+        main_layout.addLayout(content_layout)
+
+        # --- ЛІВА ПАНЕЛЬ (КНОПКИ) ---
+        left_buttons_layout = QVBoxLayout()
+        left_buttons_layout.setSpacing(15)
+        left_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        content_layout.addLayout(left_buttons_layout)
+
+        # --- ПРАВА ПАНЕЛЬ (ІНФОРМАЦІЯ) ---
+        right_info_layout = QVBoxLayout()
+        right_info_layout.setSpacing(15)
+        content_layout.addLayout(right_info_layout, 1)
+
+        self.info_main_text = QLabel("Оберіть розділ зліва для перегляду деталей.")
+        self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.info_main_text.setWordWrap(True)
+        self.info_main_text.setFont(QFont("Segoe UI", 20))
+        self.info_main_text.setStyleSheet(
+            "background-color: #111827; border: 2px dashed #374151; "
+            "border-radius: 15px; padding: 20px; color: white;"
+        )
+        right_info_layout.addWidget(self.info_main_text, 1)
+
+        self.info_description = QLabel()
+        self.info_description.setFont(QFont("Segoe UI", 18))
+        self.info_description.setWordWrap(True)
+        self.info_description.setStyleSheet("color: #9CA3AF; margin-top: 10px;")
+        right_info_layout.addWidget(self.info_description)
+
+        sidebar_btn_style = """
+        QPushButton {
+            background-color: #374151;
+            color: white;
+            border: 2px solid #4B5563;
+            border-radius: 10px;
+            padding: 10px 25px;
+            font-size: 18px;
+            text-align: left;
+            min-width: 250px;
+        }
+        QPushButton:checked {
+            background-color: #3B82F6;
+            border-color: #60A5FA;
+        }
+        """
+
+        info_sections_data = [
+            (1, "Педагогічний факультет – це той фундамент, на якому постає чудовий, сучасний архітектурний ансамбль Ізмаїльського державного гуманітарного університету",
+             "Додатково: деканат педагогічного факультету ауд. 104.", "Педагогічний факультет"),
+            (2, "Підготовка фахівців філологічного напрямку розпочалася від початку утворення закладу вищої освіти",
+             "Додатково: деканат філологічн та іноземної філології, аудиторія 304.", "Факультет укранської та"
+                                                                                     " іноземної філології"),
+            (3, "Історія факультету управління, адміністрування та інформаційної діяльності тісно пов’язана з реформуванням освіти, економіки та суспільства.",
+             "Додатково: деканат управління, адміністрування та інформаційної діяльності, аудиторія 312.", "ФУAІД"),
+            (4, "Центр неперервної освіти Ізмаїльського державного гуманітарного університету займається "
+                "проведенням курсів підвищення кваліфікації педагогічних, науково-педагогічних працівників закладів освіти",
+             "Додатково: Центр неперервної освіти, аудиторія 304", "Центр неперервної освіти"),
+            (5, "Одним із найважливіших підрозділів ІДГУ, зорієнтованим на підтримку освітнього та "
+                "науково-дослідницького процесу, є бібліотека з багатим зібранням вітчизняної і зарубіжної наукової, навчальної та художньої літератури.",
+            "Бібліотека аудиторія 117", "Бібліотека"),
+            (6, "Бухгалтерія — це ключовий структурний підрозділ університету, який забезпечує збір, обробку, реєстрацію та аналіз фінансової інформації.",
+             "Додатково: аудиторії 106 - 109", "Бухгалтерія"),
+            (7, "Відділ кадрів (або кадрова служба) — це структурний підрозділ підприємства чи організації,"
+                " відповідальний за реалізацію кадрової політики, управління персоналом та документальний супровід трудових відносин.",
+             "Додатково: аудиторія 205", "Відділ кадрів")
+        ]
+
+        self.info_buttons = []
+
+        for index, main_txt, desc_txt, btn_title in info_sections_data:
+            btn = QPushButton(btn_title)
+            btn.setStyleSheet(sidebar_btn_style)
+            btn.setCheckable(True)
+
+            btn.clicked.connect(
+                lambda checked, mt=main_txt, dt=desc_txt, b=btn: self.on_info_button_clicked(mt, dt, b)
+            )
+            left_buttons_layout.addWidget(btn)
+            self.info_buttons.append(btn)
+
+        return page
+
+    def on_info_button_clicked(self, main_text, desc_text, clicked_button):
+        """Обробляє кліки по кнопках інформаційного розділу."""
+        for btn in self.info_buttons:
+            btn.setChecked(False)
+        clicked_button.setChecked(True)
+
+        self.info_main_text.setText(main_text)
+        self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.info_description.setText(desc_text)
+
+    def show_floor(self, floor_num, img_path, description_text):
+        """Допоміжний метод класу для оновлення сторінки інтерактивної мапи"""
+        # Перемикаємо стан радіо-кнопок поверхів
+        for index, btn in enumerate(self.floor_buttons):
+            btn.setChecked(index + 1 == floor_num)
+
+        # Завантажуємо та масштабуємо зображення плану поверху
+        pixmap = QPixmap(img_path)
+        if not pixmap.isNull():
+            scaled_pixmap = pixmap.scaled(
+                800, 550,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
+            self.map_image_label.setPixmap(scaled_pixmap)
+        else:
+            self.map_image_label.setText(f"[ Зображення {img_path} не знайдено в папці проєкту ]")
+
+        # Оновлюємо текст опису під картою
+        self.map_description.setText(description_text)
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
