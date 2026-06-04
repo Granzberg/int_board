@@ -340,7 +340,7 @@ class UniversityKiosk(QWidget):
     def mousePressEvent(self, event):
         """Викликається автоматично при кожному кліку/тачу по екрану кіоску."""
         super().mousePressEvent(event)
-        # Якщо користувач активний — перезапускаємо таймер заново з позначки 45 сек
+        # Якщо користувач активний — перезапускаємо таймер заново з позначки 90 сек
         self.inactivity_timer.start()
 
     def return_to_home(self):
@@ -392,7 +392,7 @@ class UniversityKiosk(QWidget):
             color: white; 
             border: 2px solid #4B5563; 
             border-radius: 10px; 
-            padding: 15px; 
+            padding: 10px; 
             font-size: 20px; 
         }
         QPushButton:checked { 
@@ -402,13 +402,13 @@ class UniversityKiosk(QWidget):
         """
 
         floors_data = [
-            (1, "dist/main/floor1.png", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.", "1 Поверх"),
-            (2, "dist/main/floor2.png", "2 ПОВЕРХ: Адміністрація, Кафедра вищої математики.", "2 Поверх"),
-            (3, "dist/main/floor3.jpg", "3 ПОВЕРХ: Деканат, Аудиторії лекційні (301-305).", "3 Поверх"),
-            (4, "dist/main/floor4.jpg", "4 ПОВЕРХ: Аудиторії лекційні (401-405), Кафедри.", "4 Поверх"),
-            (5, "dist/main/floor5.jpg", "5 ПОВЕРХ: Читальний зал, Комп'ютерні класи (501-505).", "5 Поверх"),
-            (6, "dist/main/floor1_it.png", "КОРПУС ЦНІТ: Центр новітніх інформаційних технологій.", "1 Поверх, ЦНІТ"),
-            (7, "dist/main/floor2_sport.jpg", "СПОРТИВНИЙ КОМПЛЕКС: Спортивний зал, роздягальні.", "2 Поверх, Спортзал")
+            (1, "floor1.png", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.", "1 Поверх"),
+            (2, "floor2.png", "2 ПОВЕРХ: Адміністрація, Кафедра вищої математики.", "2 Поверх"),
+            (3, "floor3.png", "3 ПОВЕРХ: Деканат, Аудиторії лекційні (301-305).", "3 Поверх"),
+            (4, "floor4.png", "4 ПОВЕРХ: Аудиторії лекційні (401-405), Кафедри.", "4 Поверх"),
+            (5, "floor5.png", "5 ПОВЕРХ: Читальний зал, Комп'ютерні класи (501-505).", "5 Поверх"),
+            (6, "floor1_it.png", "КОРПУС ЦНІТ: Центр новітніх інформаційних технологій.", "1 Поверх, ЦНІТ"),
+            (7, "floor2_sport.png", "СПОРТИВНИЙ КОМПЛЕКС: Спортивний зал, роздягальні.", "2 Поверх, Спортзал")
         ]
 
         self.floor_buttons = []
@@ -426,7 +426,7 @@ class UniversityKiosk(QWidget):
             self.floor_buttons.append(btn)
 
         # Ініціалізуємо карту першим поверхом при старті
-        self.show_floor(1, "dist/main/floor1.png", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.")
+        self.show_floor(1, "floor1.png", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.")
 
         return page
 
@@ -448,6 +448,10 @@ class UniversityKiosk(QWidget):
             self.map_image_label.setText(f"[ Картинку {img_path} не знайдено ]")
 
         self.map_description.setText(description_text)
+
+        # === НОВИЙ КОД: Скидаємо таймер бездіяльності при зміні поверху ===
+        if hasattr(self, 'inactivity_timer'):
+            self.inactivity_timer.start()
 
     def create_info_sidebar_page(self):
         """Створює сторінку інформації з бічним меню."""
