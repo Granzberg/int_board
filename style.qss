@@ -169,8 +169,9 @@ QPushButton#ExitTestButton:pressed {
     background-color: #7F1D1D;
 }
 
- QStackedWidget {
-        background-color: #1F2937;
-        border-radius: 20px;
-        padding: 40px;
-    }
+QStackedWidget {
+    background-color: #1F2937;
+    border-radius: 20px;
+    padding: 10px; /* Уменьшаем padding, чтобы контент центрировался свободно */
+}
+

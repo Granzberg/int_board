@@ -11,12 +11,14 @@ class UniversityKiosk(QWidget):
     def __init__(self):
         super().__init__()
 
-        # Налаштування для IT Box: на весь екран, без рамок, поверх інших вікон
+        # Налаштування для IT Box: без рамок
         self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-        self.showMaximized()
 
-        # За бажанням: блокуємо зміну розмірів вікна користувачем
-        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        # АВТОМАТИЧНО ОТРИМУЄМО РОЗМІР ВАШОГО МОНІТОРА:
+        screen = QApplication.primaryScreen().geometry()
+        self.setFixedSize(screen.width(), screen.height())  # Жорстко фіксуємо під екран
+
+        self.showFullScreen()  # Запускаємо в чистому повноекранному режимі
 
         # Головний контейнер (ділить екран на "Ліво" і "Право")
         main_layout = QHBoxLayout(self)
@@ -106,7 +108,7 @@ class UniversityKiosk(QWidget):
         # ---------------- ЗБИРАЄМО ВСЕ РАЗОМ ----------------
         # Пропорція 1 до 4: ліва панель займає менше місця, права — більше
         main_layout.addLayout(left_menu, 1)
-        main_layout.addWidget(self.pages_container, 4)
+        main_layout.addWidget(self.pages_container, 2)
 
         # ---------------- ЛОГІКА НА КЛІКИ (ТАЧІ) ----------------
         # Прив'язуємо кнопки до перемикання сторінок за індексами
@@ -325,45 +327,50 @@ class UniversityKiosk(QWidget):
         return label
 
     def create_home_page(self):
-        """Створює головну сторінку з фіксованим центром."""
+        """Створює головну сторінку з ідеальним системним центруванням."""
         page = QWidget()
 
-        # Головний макет — горизонтальний для затискання пружинами
-        main_layout = QHBoxLayout(page)
-        content_widget = QWidget()
-        layout = QVBoxLayout(content_widget)
+        # Головний вертикальний макет для всієї сторінки
+        layout = QVBoxLayout(page)
+
+        # Важливо: усуваємо розтягування сетки, змушуючи елементи групуватися строго по центру
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.setSpacing(25)
 
-        # Створення елементів з фіксованою шириною для центрування
+        # 1. ЕЛЕМЕНТ ДЛЯ ВІДОБРАЖЕННЯ ЛОГОТИПУ
         logo_label = QLabel()
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pixmap = QPixmap("logo.png")
         if not pixmap.isNull():
-            logo_label.setPixmap(
-                pixmap.scaled(350, 350, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            logo_label.setPixmap(pixmap.scaled(
+                350, 350,
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            ))
+        else:
+            logo_label.setText("[ Логотип університету не знайдено ]")
+            logo_label.setObjectName("LogoErrorLabel")
 
-        # Текстові блоки з фіксованим розміром (700px), щоб уникнути розтягування
+        # 2. ГОЛОВНИЙ ВІТАЛЬНИЙ ЗАГОЛОВОК
         welcome_title = QLabel("Вітаємо в Ізмаїльському Державному Гуманітарному Університеті!")
         welcome_title.setFont(QFont("Segoe UI", 28, QFont.Weight.Bold))
         welcome_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         welcome_title.setWordWrap(True)
-        welcome_title.setFixedSize(700, 160)
+        welcome_title.setObjectName("WelcomeTitle")
+        welcome_title.setFixedWidth(750)  # Задаємо ТІЛЬКИ ширину, висота підлаштується автоматично
 
+        # 3. ІНСТРУКЦІЯ ДЛЯ СТУДЕНТА
         welcome_hint = QLabel("Оберіть потрібний розділ меню ліворуч, щоб отримати інформацію.")
         welcome_hint.setFont(QFont("Segoe UI", 20))
         welcome_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
         welcome_hint.setWordWrap(True)
-        welcome_hint.setFixedSize(700, 80)
+        welcome_hint.setObjectName("WelcomeHint")
+        welcome_hint.setFixedWidth(750)  # Задаємо ТІЛЬКИ ширину
 
-        # Збірка
-        layout.addWidget(logo_label, 0, Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(welcome_title, 0, Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(welcome_hint, 0, Qt.AlignmentFlag.AlignCenter)
-
-        # Пружини по боках для вирівнювання контенту по центру
-        main_layout.addStretch(1)
-        main_layout.addWidget(content_widget)
-        main_layout.addStretch(1)
+        # Додаємо елементи і явно вказуємо Qt вирівнювати їх по центру всередині контейнера
+        layout.addWidget(logo_label, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(welcome_title, alignment=Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(welcome_hint, alignment=Qt.AlignmentFlag.AlignCenter)
 
         return page
 
