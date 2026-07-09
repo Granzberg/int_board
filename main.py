@@ -31,13 +31,13 @@ class UniversityKiosk(QWidget):
         self.time_label = QLabel(self)
         self.time_label.setFont(QFont("Open Sans", 36, QFont.Weight.Bold))
         self.time_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # ЗАМІНА СТИЛЮ НА ІМ'Я ОБ'ЄКТА:
+        # Додаємо ім'я для зв'язку зі style.qss
         self.time_label.setObjectName("ClockTime")
 
         self.date_label = QLabel(self)
         self.date_label.setFont(QFont("Open Sans", 16))
         self.date_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # ЗАМІНА СТИЛЮ НА ІМ'Я ОБ'ЄКТА:
+        # Додаємо ім'я для зв'язку зі style.qss
         self.date_label.setObjectName("ClockDate")
 
         # Додаємо годинник та дату на самий верх лівого меню
@@ -49,18 +49,29 @@ class UniversityKiosk(QWidget):
         timer.timeout.connect(self.update_clock)
         timer.start(1000)
 
+        # Викликаємо функцію одразу, щоб годинник з'явився без затримки в 1 секунду
         self.update_clock()
 
-        # Створюємо великі тач-кнопки (вони автоматично беруть стиль QPushButton з QSS)
+        # ---------------- СТВОРЮЄМО ВЕЛИКІ ТАЧ-КНОПКИ ----------------
         self.btn_home = QPushButton("🏠 Головна", self)
-        self.btn_schedule = QPushButton("📅 Розклад занять", self)
+        # ПРИВ'ЯЗУЄМО ДО ГЛОБАЛЬНОГО СТИЛЮ QPushButton (через базовий селектор або ім'я)
+        self.btn_home.setObjectName("MainMenuButton")
+
+        self.btn_schedule = QPushButton("📅 Розклад", self)
+        self.btn_schedule.setObjectName("MainMenuButton")
+
         self.btn_map = QPushButton("🗺️ Карта корпусів", self)
+        self.btn_map.setObjectName("MainMenuButton")
+
         self.btn_university_structure = QPushButton("🏛️ Структура унівeрситету", self)
+        self.btn_university_structure.setObjectName("MainMenuButton")
+
         self.btn_contacts = QPushButton("📞 Контакти", self)
+        self.btn_contacts.setObjectName("MainMenuButton")
 
         # Кнопка виходу (Тимчасова! Щоб ви могли закрити програму під час тестів)
         self.btn_exit = QPushButton("❌ Вихід (Тест)", self)
-        # ЗАМІНА СТИЛЮ НА ІМ'Я ОБ'ЄКТА:
+        # Додаємо ім'я для зв'язку з ExitTestButton у qss
         self.btn_exit.setObjectName("ExitTestButton")
 
         # Додаємо кнопки в ліве меню
@@ -69,13 +80,13 @@ class UniversityKiosk(QWidget):
         left_menu.addWidget(self.btn_map)
         left_menu.addWidget(self.btn_schedule)
         left_menu.addWidget(self.btn_contacts)
-        left_menu.addStretch()
+        left_menu.addStretch()  # Штовхає кнопку виходу до самого низу
         left_menu.addWidget(self.btn_exit)
 
         # ---------------- ПРАВА ПАНЕЛЬ (СТОРІНКИ) ----------------
         # QStackedWidget — це "стопка" сторінок. Показується тільки одна.
         self.pages_container = QStackedWidget(self)
-        self.pages_container.setStyleSheet("background-color: #1F2937; border-radius: 20px; padding: 40px;")
+       # self.pages_container.setStyleSheet("background-color: #1F2937; border-radius: 20px; padding: 40px;")
 
         # Створюємо сторінки
         self.page_home = self.create_home_page()
@@ -314,60 +325,45 @@ class UniversityKiosk(QWidget):
         return label
 
     def create_home_page(self):
-        """Створює головну сторінку з логотипом університету, великим заголовком та підказкою."""
+        """Створює головну сторінку з фіксованим центром."""
         page = QWidget()
 
-        # Головний макет сторінки — ГОРИЗОНТАЛЬНИЙ (щоб затиснути вміст по центру)
-        main_horizontal_layout = QHBoxLayout(page)
-
-        # Створюємо внутрішній ВЕРТИКАЛЬНИЙ контейнер для елементів
+        # Головний макет — горизонтальний для затискання пружинами
+        main_layout = QHBoxLayout(page)
         content_widget = QWidget()
         layout = QVBoxLayout(content_widget)
-        layout.setSpacing(25)  # Відступ між логотипом і текстами
+        layout.setSpacing(25)
 
-        # 1. ЕЛЕМЕНТ ДЛЯ ВІДОБРАЖЕННЯ ЛОГОТИПУ
+        # Створення елементів з фіксованою шириною для центрування
         logo_label = QLabel()
-        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         pixmap = QPixmap("logo.png")
-
         if not pixmap.isNull():
-            scaled_logo = pixmap.scaled(
-                350, 350,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            logo_label.setPixmap(scaled_logo)
-        else:
-            logo_label.setText("[ Логотип університету не знайдено ]")
-            logo_label.setObjectName("LogoErrorLabel")
+            logo_label.setPixmap(
+                pixmap.scaled(350, 350, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+        logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # 2. ГОЛОВНИЙ ВІТАЛЬНИЙ ЗАГОЛОВОК
+        # Текстові блоки з фіксованим розміром (700px), щоб уникнути розтягування
         welcome_title = QLabel("Вітаємо в Ізмаїльському Державному Гуманітарному Університеті!")
-        welcome_title.setFont(QFont("Segoe UI", 28, QFont.Weight.Bold))  # 28 розмір ідеально збалансований
-        welcome_title.setWordWrap(True)
+        welcome_title.setFont(QFont("Segoe UI", 28, QFont.Weight.Bold))
         welcome_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        welcome_title.setObjectName("WelcomeTitle")
-        welcome_title.setMaximumWidth(750)  # Фіксуємо максимальну ширину тексту
+        welcome_title.setWordWrap(True)
+        welcome_title.setFixedSize(700, 160)
 
-        # 3. ІНСТРУКЦІЯ ДЛЯ СТУДЕНТА
         welcome_hint = QLabel("Оберіть потрібний розділ меню ліворуч, щоб отримати інформацію.")
         welcome_hint.setFont(QFont("Segoe UI", 20))
-        welcome_hint.setWordWrap(True)
         welcome_hint.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        welcome_hint.setObjectName("WelcomeHint")
-        welcome_hint.setMaximumWidth(750)  # Фіксуємо максимальну ширину тексту
+        welcome_hint.setWordWrap(True)
+        welcome_hint.setFixedSize(700, 80)
 
-        # Додаємо всі елементи у вертикальний контейнер
-        layout.addWidget(logo_label)
-        layout.addWidget(welcome_title)
-        layout.addWidget(welcome_hint)
+        # Збірка
+        layout.addWidget(logo_label, 0, Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(welcome_title, 0, Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(welcome_hint, 0, Qt.AlignmentFlag.AlignCenter)
 
-        # МАГІЯ ВИРІВНЮВАННЯ: затискаємо content_widget пружинами зліва, справа, зверху та знизу
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
-        main_horizontal_layout.addStretch(1)  # Ліва пружина
-        main_horizontal_layout.addWidget(content_widget)  # Сам блок із логотипом та текстом
-        main_horizontal_layout.addStretch(1)  # Права пружина
+        # Пружини по боках для вирівнювання контенту по центру
+        main_layout.addStretch(1)
+        main_layout.addWidget(content_widget)
+        main_layout.addStretch(1)
 
         return page
 
@@ -619,13 +615,14 @@ class UniversityKiosk(QWidget):
 
 if __name__ == "__main__":
     import sys
-    import os
+    import os  # Обов'язково додаємо цей імпорт
     from PyQt6.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
 
-    # АВТОМАТИЧНЕ ТА НАДІЙНЕ ЗЧИТУВАННЯ QSS
+    # === НАДІЙНЕ АВТОМАТИЧНЕ ЗЧИТУВАННЯ QSS-ФАЙЛУ ===
     try:
+        # Отримуємо точний шлях до папки, де лежить сам файл main.py
         current_dir = os.path.dirname(os.path.abspath(__file__))
         qss_path = os.path.join(current_dir, "style.qss")
 

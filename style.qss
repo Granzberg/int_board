@@ -106,17 +106,14 @@ QLabel#WelcomeTitle {
     qproperty-alignment: 'AlignCenter'; /* Примусове вирівнювання по центру в PyQt */
 }
 
-/* Сіра інструкція для студентів під заголовком */
-QLabel#WelcomeHint {
-    color: #9CA3AF;
-    qproperty-alignment: 'AlignCenter'; /* Примусове вирівнювання по центру в PyQt */
+/* Додайте qproperty-alignment: 'AlignCenter'; для центрування */
+QLabel#LogoErrorLabel, QLabel#WelcomeTitle, QLabel#WelcomeHint {
+    qproperty-alignment: 'AlignCenter';
 }
+/* Оновіть кольори та відступи для #WelcomeTitle та #WelcomeHint */
+QLabel#WelcomeTitle { color: #3B82F6; margin-top: 20px; margin-bottom: 5px; }
+QLabel#WelcomeHint { color: #9CA3AF; }
 
-/* Заголовок сторінки структури */
-QLabel#StructureTitle {
-    color: #3B82F6;
-    margin-bottom: 20px;
-}
 
 /* Додатковий опис структури під головним текстом */
 QLabel#InfoDescription {
@@ -172,3 +169,8 @@ QPushButton#ExitTestButton:pressed {
     background-color: #7F1D1D;
 }
 
+ QStackedWidget {
+        background-color: #1F2937;
+        border-radius: 20px;
+        padding: 40px;
+    }
