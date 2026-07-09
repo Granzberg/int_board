@@ -1,0 +1,174 @@
+/* ========================================== */
+/* ГЛОБАЛЬНІ СТИЛІ ІНТЕРФЕЙСУ (PyQt)         */
+/* ========================================== */
+
+QWidget { 
+    background-color: #0f172A; 
+    color: #FFFFFF; 
+    font-family: 'Open Sans', Arial, sans-serif; 
+}
+
+/* Стандартні великі кнопки ГОЛОВНОГО МЕНЮ зліва */
+QPushButton {
+    background-color: #1F2937;
+    border: 2px solid #374151;
+    border-radius: 15px;
+    padding: 15px;
+    font-size: 20px;
+    font-weight: bold;
+    min-height: 55px;
+    max-height: 55px;
+    min-width: 250px;  /* ПРИМУСОВО РОБИМО КНОПКИ ОДНАКОВОЇ ШИРИНИ */
+    max-width: 280px;
+    text-align: left;  /* Вирівнювання тексту по лівому краю разом з іконками */
+}
+
+QPushButton:pressed {
+    background-color: #3B82F6;
+    border-color: #60A5FA;
+}
+
+
+/* ========================================== */
+/* СПЕЦІАЛЬНІ СТИЛІ ДЛЯ КНОПОК БІЧНОГО МЕНЮ   */
+/* ========================================== */
+
+QPushButton#SidebarButton {
+    background-color: #374151;
+    color: white;
+    border: 2px solid #4B5563;
+    border-radius: 10px;
+    padding: 5px 15px !important; /* Важливо для скидання глобального padding */
+    height: 45px;
+    min-height: 45px;
+    max-height: 45px;
+    font-size: 18px;
+    text-align: left;
+}
+
+QPushButton#SidebarButton:checked {
+    background-color: #3B82F6;
+    border-color: #60A5FA;
+}
+
+
+/* ========================================== */
+/* СТИЛІ ДЛЯ КНОПОК ПЕРЕМИКАННЯ ПОВЕРХІВ       */
+/* ========================================== */
+
+QPushButton#FloorButton {
+    background-color: #374151;
+    color: white;
+    border: 2px solid #4B5563;
+    border-radius: 10px;
+    padding: 10px 25px;
+    font-size: 18px;
+    text-align: left;
+    min-width: 250px;
+}
+
+QPushButton#FloorButton:checked {
+    background-color: #3B82F6;
+    border-color: #60A5FA;
+}
+
+/* =================================================== */
+/* Стиль для головного текстового блоку інформації     */
+/* =================================================== */
+
+/* Стиль для головного текстового блоку інформації справа */
+QLabel#InfoMainText {
+    background-color: #111827;
+    border: 2px dashed #374151;
+    border-radius: 15px;
+    padding: 20px;
+    color: white;
+
+    /* ВИПРАВЛЕННЯ: примусове центрування тексту всередині блоку */
+    qproperty-alignment: 'AlignCenter';
+    margin: 40px; /* Створює красивий відступ від країв екрана */
+}
+
+/* Інщі стилі */
+
+/* Червоне попередження, якщо немає файлу logo.png */
+QLabel#LogoErrorLabel {
+    color: #EF4444;
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* Великий синій вітальний заголовок ІДГУ */
+QLabel#WelcomeTitle {
+    color: #3B82F6;
+    margin-top: 20px;
+    margin-bottom: 5px;
+    qproperty-alignment: 'AlignCenter'; /* Примусове вирівнювання по центру в PyQt */
+}
+
+/* Сіра інструкція для студентів під заголовком */
+QLabel#WelcomeHint {
+    color: #9CA3AF;
+    qproperty-alignment: 'AlignCenter'; /* Примусове вирівнювання по центру в PyQt */
+}
+
+/* Заголовок сторінки структури */
+QLabel#StructureTitle {
+    color: #3B82F6;
+    margin-bottom: 20px;
+}
+
+/* Додатковий опис структури під головним текстом */
+QLabel#InfoDescription {
+    color: #9CA3AF;
+    margin-top: 10px;
+}
+
+/* Заголовок сторінки карти поверхів */
+QLabel#MapTitle {
+    color: #3B82F6;
+    margin-bottom: 20px;
+}
+
+/* Рамка-контейнер для відображення карти поверху */
+QLabel#MapImageContainer {
+    background-color: #111827;
+    border: 2px dashed #374151;
+    border-radius: 15px;
+    margin: 5px 10px;
+    padding: 20px;
+}
+
+/* Сірий опис поверху під інтерактивною картою */
+QLabel#MapDescription {
+    color: #9CA3AF;
+    margin-top: 15px;
+}
+
+/* Темний фон для віджета браузера розкладу під час завантаження */
+QWebEngineView#ScheduleBrowser {
+    background-color: #1F2937;
+}
+
+/* Великий синій цифровий годинник у меню */
+QLabel#ClockTime {
+    color: #3B82F6;
+    margin-bottom: 0px;
+}
+
+/* Календарна дата під годинником */
+QLabel#ClockDate {
+    color: #9CA3AF;
+    margin-bottom: 25px;
+}
+
+/* Червона кнопка виходу з тестування */
+QPushButton#ExitTestButton {
+    background-color: #991B1B;
+    border: none;
+}
+/* Зміна кольору при натисканні на кнопку виходу */
+QPushButton#ExitTestButton:pressed {
+    background-color: #7F1D1D;
+}
+
