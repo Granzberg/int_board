@@ -58,26 +58,24 @@ QPushButton#SidebarButton:checked {
 /* ========================================== */
 
 QPushButton#FloorButton {
-    background-color: #1F2937;    /* Темний фон */
-    color: #E5E7EB;               /* Світлий текст */
-    border: 2px solid #374151;    /* Рамка */
-    border-radius: 8px;           /* Трохи менше закруглення кутів */
-
-    /* ЗМЕНШЕНО: Внутрішні відступи (10px зверху/знизу, 12px зліва/справа) */
+    background-color: #1F2937;
+    color: #E5E7EB;
+    border: 2px solid #374151;
+    border-radius: 8px;
     padding: 10px 12px;
-
     font-family: "Segoe UI";
-
-    /* ЗМЕНШЕНО: Розмір шрифту на кнопках (було більше 22px) */
     font-size: 16px;
     font-weight: bold;
-
-    /* ЗМЕНШЕНО: Висота кнопок (була близько 55px-60px) */
     min-height: 40px;
     max-height: 45px;
 
-    margin-right: 6px;            /* Відступ між кнопками */
+    /* ЗБІЛЬШЕНО: розсуваємо кнопки ще сильніше */
+    margin-right: 14px;
+
+    min-width: 120px;  /* Коротка назва все одно розтягнеться хоча б до 120px */
+    max-width: 250px;  /* Дуже довга назва не розтягне кнопку більше ніж на 250px */
 }
+
 
 /* Стан при наведенні пальцем/мишкою */
 QPushButton#FloorButton:hover {
@@ -224,3 +222,24 @@ QStackedWidget {
     padding: 10px; /* Уменьшаем padding, чтобы контент центрировался свободно */
 }
 
+/* Головний заголовок сторінки контактів */
+QLabel#ContactsTitle {
+    color: #3B82F6;
+    font-family: "Segoe UI";
+    font-size: 32px;
+    font-weight: bold;
+    margin-bottom: 20px;
+}
+
+/* Рядки з контактною інформацією */
+QLabel#ContactInfoLine {
+    color: #F9FAFB;
+    font-family: "Segoe UI";
+    font-size: 26px;
+    background-color: #111827;
+    border: 2px solid #374151; /* Сделали рамку чуть толще и сплошной */
+    border-radius: 12px;
+    padding: 25px 35px;
+    margin: 5px 0px;
+}
+}

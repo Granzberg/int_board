@@ -7,6 +7,24 @@ from datetime import datetime
 
 import json
 
+from PyQt6.QtCore import QObject, QEvent
+
+class GlobalTouchFilter(QObject):
+    def __init__(self, kiosk_instance):
+        super().__init__()
+        self.kiosk = kiosk_instance
+
+    def eventFilter(self, obj, event):
+        # Перехоплюємо натискання миші, тач-події або прокрутку (скрол)
+        if event.type() in [QEvent.Type.MouseButtonPress, QEvent.Type.MouseButtonRelease,
+                            QEvent.Type.TouchBegin, QEvent.Type.TouchUpdate]:
+            # Щоразу, коли відбувається дотик — скидаємо таймер кіоску
+            if hasattr(self.kiosk, 'inactivity_timer'):
+                self.kiosk.inactivity_timer.start()
+        return super().eventFilter(obj, event)
+
+
+
 class UniversityKiosk(QWidget):
     def __init__(self):
         super().__init__()
@@ -95,8 +113,8 @@ class UniversityKiosk(QWidget):
         self.page_schedule = self.create_schedule_page()
         self.page_university_structure = self.create_info_sidebar_page()
         self.page_map = self.create_interactive_map_page()
-        self.page_contacts = self.create_page_content(
-            "Контакти університету:\n\n📞 Приймальна комісія: 38 (094) 9989607, 38 (068) 0313992\n📧 Email: vstupidgu@gmail.com, idgu@ukr.net\n📍 Адреса: вул. Іллі Ріпина, 12")
+        # Замените старую строку на вызов новой функции:
+        self.page_contacts = self.create_contacts_page()
 
         # Додаємо сторінки в наш контейнер (вони отримують індекси 0, 1, 2, 3, 4)
         self.pages_container.addWidget(self.page_home)  # Індекс 0
@@ -379,12 +397,6 @@ class UniversityKiosk(QWidget):
         if event.key() == Qt.Key.Key_Escape:
             self.close()
 
-    def mousePressEvent(self, event):
-        """Викликається автоматично при кожному кліку/тачу по екрану кіоску."""
-        super().mousePressEvent(event)
-        # Якщо користувач активний — перезапускаємо таймер заново з позначки 90 сек
-        self.inactivity_timer.start()
-
     def return_to_home(self):
         """Спрацьовує, коли таймер добігає кінця."""
         # Перевіряємо, чи кіоск зараз НЕ на головній сторінці (індекс 0)
@@ -396,13 +408,30 @@ class UniversityKiosk(QWidget):
         """Створює сторінку інтерактивної мапи з JSON-даними."""
         page = QWidget()
         layout = QVBoxLayout(page)
+        layout.setContentsMargins(25, 20, 25, 20)
 
-        # Створення елементів інтерфейсу
+        # Название страницы (привязка к стилю QLabel#MapTitle)
+        title = QLabel("🗺 ПЛАН НАВЧАЛЬНОГО КОРПУСУ")
+        title.setFont(QFont("Segoe UI", 26, QFont.Weight.Bold))
+        title.setObjectName("MapTitle")
+        layout.addWidget(title)
+
+        # ВИПРАВЛЕНО: Присвоюємо правильний ObjectName для рамки карти
         self.map_image_label = QLabel()
         self.map_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.map_description = QLabel()
+        self.map_image_label.setObjectName("MapImageContainer")  # Зв'язок з QSS!
 
+        # ВИПРАВЛЕНО: Присвоюємо правильний ObjectName для нижнього опису
+        self.map_description = QLabel()
+        self.map_description.setObjectName("MapDescription")  # Зв'язок з QSS!
+        self.map_description.setWordWrap(True)
+        self.map_description.setFont(QFont("Segoe UI", 18))
+
+        # Горизонтальний макет кнопок з фіксованими відступами
         floor_buttons_layout = QHBoxLayout()
+        floor_buttons_layout.setSpacing(15)  # Розсуває кнопки в коді
+        floor_buttons_layout.setContentsMargins(0, 10, 0, 15)
+
         self.floor_buttons = []
         self.map_data_store = {}
 
@@ -422,12 +451,10 @@ class UniversityKiosk(QWidget):
                         btn.setObjectName("FloorButton")
                         btn.setCheckable(True)
 
-                        # Зберігаємо шляхи та описи
                         self.map_data_store[btn.text()] = {
                             "image": os.path.join(base_dir, item.get("image_path", "")),
                             "description": item.get("description", "")
                         }
-                        # Підключаємо сигнал БЕЗ lambda
                         btn.clicked.connect(self.show_floor)
                         floor_buttons_layout.addWidget(btn)
                         self.floor_buttons.append(btn)
@@ -436,9 +463,23 @@ class UniversityKiosk(QWidget):
             layout.addWidget(self.map_image_label, 1)
             layout.addWidget(self.map_description)
 
-            # Ініціалізація першого поверху
+            # ВИПРАВЛЕНО КРАШ РОЗМІРУ: Завантажуємо карту першого поверху БЕЗ передчасного кліку
             if self.floor_buttons:
-                self.floor_buttons[0].click()
+                first_btn = self.floor_buttons[0]
+                first_btn.setChecked(True)
+
+                data = self.map_data_store.get(first_btn.text(), {})
+                self.map_description.setText(data.get("description", ""))
+
+                img_path = data.get("image", "")
+                if img_path and os.path.exists(img_path):
+                    pixmap = QPixmap(img_path)
+                    # Фіксований безпечний розмір для першого рендеру табло (1200х650)
+                    self.map_image_label.setPixmap(pixmap.scaled(
+                        1200, 650,
+                        Qt.AspectRatioMode.KeepAspectRatio,
+                        Qt.TransformationMode.SmoothTransformation
+                    ))
 
         except Exception as e:
             self.map_description.setText(f"Помилка: {e}")
@@ -450,13 +491,11 @@ class UniversityKiosk(QWidget):
         clicked_btn = self.sender()
         if not clicked_btn: return
 
-        # Логіка радіокнопок
         for btn in self.floor_buttons:
             btn.blockSignals(True)
             btn.setChecked(btn == clicked_btn)
             btn.blockSignals(False)
 
-        # Оновлення контенту з map_data_store
         data = self.map_data_store.get(clicked_btn.text(), {})
         self.map_description.setText(data.get("description", ""))
 
@@ -464,8 +503,12 @@ class UniversityKiosk(QWidget):
         img_path = data.get("image", "")
         if img_path and os.path.exists(img_path):
             pixmap = QPixmap(img_path)
-            # Масштабування
-            scaled = pixmap.scaled(self.map_image_label.size(), Qt.AspectRatioMode.KeepAspectRatio)
+            # Використовуємо якісне SmoothTransformation для чіткості кабінетів
+            scaled = pixmap.scaled(
+                self.map_image_label.size(),
+                Qt.AspectRatioMode.KeepAspectRatio,
+                Qt.TransformationMode.SmoothTransformation
+            )
             self.map_image_label.setPixmap(scaled)
 
     def create_info_sidebar_page(self):
@@ -585,25 +628,97 @@ class UniversityKiosk(QWidget):
         self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
         self.info_description.setText(desc_text)
 
+    def create_contacts_page(self):
+        """Створює сучасну сторінку контактів, завантажуючи дані з JSON."""
+        page = QWidget()
+        layout = QVBoxLayout(page)
+        layout.setContentsMargins(40, 40, 40, 40)
+        layout.setSpacing(30)
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        # 1. Заголовок сторінки
+        self.contacts_title = QLabel("📞 КОНТАКТИ УНІВЕРСИТЕТУ")
+        self.contacts_title.setObjectName("ContactsTitle")
+        layout.addWidget(self.contacts_title)
+
+        # Контейнер для інформаційних блоків
+        info_layout = QVBoxLayout()
+        info_layout.setSpacing(25)
+
+        self.lbl_admission = QLabel()
+        self.lbl_email = QLabel()
+        self.lbl_address = QLabel()
+
+        # Значения по умолчанию на случай, если JSON пустой или отсутствует
+        admission_default = "<b>Приймальна комісія:</b> +38 (094) 998-96-07, +38 (068) 031-39-92"
+        email_default = "<b>Email:</b> vstupidgu@gmail.com, idgu@ukr.net"
+        address_default = "<b>Адреса:</b> вул. Іллі Ріпина, 12"
+
+        # --- ЗАВАНТАЖЕННЯ З JSON ---
+        try:
+            import os
+            import json
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            json_path = os.path.join(base_dir, "data.json")
+
+            if os.path.exists(json_path):
+                with open(json_path, "r", encoding="utf-8") as f:
+                    data = json.load(f).get("contacts", {})
+                    self.contacts_title.setText(data.get("title", "📞 КОНТАКТИ УНІВЕРСИТЕТУ"))
+                    self.lbl_admission.setText(data.get("admission_committee", admission_default))
+                    self.lbl_email.setText(data.get("email", email_default))
+                    self.lbl_address.setText(data.get("address", address_default))
+            else:
+                self.lbl_admission.setText(admission_default)
+                self.lbl_email.setText(email_default)
+                self.lbl_address.setText(address_default)
+        except Exception as e:
+            self.lbl_admission.setText(admission_default)
+            self.lbl_email.setText(email_default)
+            self.lbl_address.setText(address_default)
+
+        # Налаштування стилів та розтягування плашок
+        for lbl in [self.lbl_admission, self.lbl_email, self.lbl_address]:
+            lbl.setWordWrap(True)
+            lbl.setObjectName("ContactInfoLine")
+
+            # ВИПРАВЛЕНО: QHBoxLayout теперь заставляет плашку растягиваться по горизонтали
+            row = QHBoxLayout()
+            row.addWidget(lbl, 1)  # Параметр 1 заставляет QLabel занимать всю ширину
+            info_layout.addLayout(row)
+
+        layout.addLayout(info_layout)
+        return page
+
+    def _create_contact_row(self, label_widget):
+        """Допоміжний метод для створення рядка інформації."""
+        row = QHBoxLayout()
+        row.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        row.addWidget(label_widget)
+        return row
+
 
 if __name__ == "__main__":
     import sys
-    import os  # Обов'язково додаємо цей імпорт
+    import os
     from PyQt6.QtWidgets import QApplication
 
     app = QApplication(sys.argv)
 
-    # === НАДІЙНЕ АВТОМАТИЧНЕ ЗЧИТУВАННЯ QSS-ФАЙЛУ ===
     try:
-        # Отримуємо точний шлях до папки, де лежить сам файл main.py
         current_dir = os.path.dirname(os.path.abspath(__file__))
         qss_path = os.path.join(current_dir, "style.qss")
-
         with open(qss_path, "r", encoding="utf-8") as f:
             app.setStyleSheet(f.read())
     except Exception as e:
         print(f"=== ПОМИЛКА ЗАВАНТАЖЕННЯ СТИЛІВ: {e} ===")
 
     kiosk = UniversityKiosk()
+
+    # --- НОВИЙ НАДІЙНИЙ КОД: Підключаємо глобальний тач-фільтр ---
+    touch_filter = GlobalTouchFilter(kiosk)
+    app.installEventFilter(touch_filter)
+    # -------------------------------------------------------------
+
     kiosk.show()
     sys.exit(app.exec())
