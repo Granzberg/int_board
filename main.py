@@ -485,129 +485,98 @@ class UniversityKiosk(QWidget):
         # 1. ЗАГОЛОВОК СТОРІНКИ
         title = QLabel("🏛 ІНФОРМАЦІЯ ПО СТРУКТУРІ УНІВЕРСИТЕТУ")
         title.setFont(QFont("Segoe UI", 26, QFont.Weight.Bold))
-        title.setObjectName("StructureTitle")  # Стиль з style.qss
+        title.setObjectName("StructureTitle")
         main_layout.addWidget(title)
 
-        # 2. ГОЛОВНИЙ ГОРИЗОНТАЛЬНИЙ КОНТЕЙНЕР (розділяє ліво і право)
+        # 2. ГОЛОВНИЙ ГОРИЗОНТАЛЬНИЙ КОНТЕЙНЕР
         content_layout = QHBoxLayout()
         content_layout.setSpacing(30)
         main_layout.addLayout(content_layout)
 
         # --- ЛІВА ПАНЕЛЬ (КНОПКИ) ---
-        self.left_buttons_layout = QVBoxLayout()  # Робимо self, щоб цикл заповнення кнопок міг його знайти
-        self.left_buttons_layout.setSpacing(15)
+        self.left_buttons_layout = QVBoxLayout()
         self.left_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        content_layout.addLayout(self.left_buttons_layout)  # ТУТ ВИПРАВЛЕНО: додаємо в content_layout!
+        content_layout.addLayout(self.left_buttons_layout)
 
         # --- ПРАВА ПАНЕЛЬ (ІНФОРМАЦІЯ) ---
         right_info_layout = QVBoxLayout()
-        right_info_layout.setSpacing(15)
         content_layout.addLayout(right_info_layout, 1)
 
-        # Спочатку СТВОРЮЄМО об'єкти, а потім додаємо їх у макет
         self.info_main_text = QLabel("Оберіть розділ зліва для перегляду деталей.")
         self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_main_text.setWordWrap(True)
         self.info_main_text.setFont(QFont("Segoe UI", 20))
-        self.info_main_text.setObjectName("InfoMainText")  # Стиль з style.qss
+        self.info_main_text.setObjectName("InfoMainText")
         right_info_layout.addWidget(self.info_main_text, 1)
 
         self.info_description = QLabel()
         self.info_description.setFont(QFont("Segoe UI", 18))
         self.info_description.setWordWrap(True)
-        self.info_description.setObjectName("InfoDescription")  # Стиль з style.qss
+        self.info_description.setObjectName("InfoDescription")
         right_info_layout.addWidget(self.info_description)
 
+        # --- АБСОЛЮТНО БЕЗПЕЧНЕ ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ ---
+        try:
+            import os
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            json_path = os.path.join(base_dir, "structure_data.json")
 
-        info_sections_data = [
-            (1, "Педагогічний факультет ІДГУ готує фахівців дошкільної, початкової, спеціальної та мистецької освіти.\n"
-                "Розташований в головному корпусі за адресою: вул. Рєпіна, 12, м. Ізмаїл, Одеська обл.\nСтруктура факультету:\n"
-                "Навчальний процес забезпечують 4 випускові кафедри\n"
-                "Кафедра дошкільної та початкової освіти\n"
-                "Кафедра загальної педагогіки і спеціальної освіти\n"
-                "Кафедра фізичного виховання, спорту та здоров'я людини\n"
-                "Кафедра музичного та образотворчого\n\n"
-                "Приймальна комісія (телефон): (068) 031-39-92, (094) 998-96-07\n"
-                "Електронна пошта для довідок: idgu@ukr.net\n"
-                "Офіційний сайт: https://idgu.edu.ua/",
-             "Додатково: корпус №1, каб. 104.", "Педагогічний факультет ІДГУ"),
-            (2, "Факультет української та іноземної філології (ФУІФ) Ізмаїльського державного гуманітарного університету "
-                "готує фахівців за спеціальністю «Філологія». Декан факультету — доцент Татаринов Іван Євгенович.\n"
-                "Освітній процес забезпечують профільні кафедри. Основні освітні програми та спеціальності (Бакалавр) "
-                "«Філологія (Українська мова і література та англійська мова, переклад включно)»\n"
-                "«Філологія (Німецька і англійська мови та літератури, переклад включно)»\n"
-                "«Середня освіта (Англійська мова та зарубіжна література)»\n\n"
-                "Електронна пошта: fim_idgu@ukr.net\n"
-                "Офіційний портал: https://idgu.edu.ua/faculties/fim",
-             "Додатково: ауд. 305.", "Факультет української та іноземної філології (ФУІФ)"),
-            (3, "На факультеті здійснюється підготовка за рівнями «бакалавр» та «магістр».\n"
-                "До структури ФУАІД входять: "
-                "Кафедра технологічної освіти та природничих наук\n"
-                "Кафедра управління підприємницькою та туристичною діяльністю\n"
-                "Кафедра математики, інформатики та інформаційної діяльності\n"
-                "Кафедра  історії та методики її навчання\n"
-                "Кафедра загальної та практичної психології\n"
-                "Кафедра права і соціальної роботи\n\n"
-                "Телефон: (04841) 5-32-42.\n"
-                "Електронна пошта: labfuaid@gmail.com (технічна підтримка факультету).\n"
-                "Сайт факультету: https://fei.idgu.edu.ua/.\n"
-                "Telegram-канал деканату: @dekanat_fuaid.\n"
-                "Facebook-сторінка: Сторінка live.fuaid.\n"
-                "Instagram: @fuaid_live.",
-             "Додатково: ауд. 312.", "ФУАІД ІДГУ"),
-            (4, "Центр неперервної освіти (ЦНО) ІДГУ здійснює довузівську підготовку, курси підвищення кваліфікації педагогів та надає додаткові платні освітні послуги.\n"
-                "Основні напрямки діяльності ЦНО:\n"
-                "Довузівська підготовка: навчання громадян України та іноземців для вступу до закладів вищої освіти.\n"
-                "Підвищення кваліфікації: спеціальні курси для педагогічних працівників за затвердженим планом-графіком.\n"
-                "Додаткові послуги: платні навчальні курси понад обсяги основних освітніх програм.\n\n"
-                "Контакти та графік роботи:\n"
-                "Телефон: +38 (096) 556-08-83 (дзвінки приймають з 9:30 до 16:00 у робочі дні)\n"
-                "Електронна пошта: rioidgu@ukr.net\n"
-                "Офіційний вебсайт: cno.idgu.edu.ua\n",
-             "Додатково: ауд. 305", "Центр неперервної освіти (ЦНО) ІДГУ"),
-            (5, "Одним із найважливіших підрозділів ІДГУ, зорієнтованим на підтримку освітнього та "
-                "науково-дослідницького процесу, є бібліотека з багатим зібранням вітчизняної і зарубіжної наукової, навчальної та художньої літератури.",
-            "Додатково: ауд. 117", "Бібліотека"),
-            (6, " Бухгалтерія опікується фінансовими питаннями вишу, зокрема нарахуванням заробітних плат працівникам та стипендій студентам.\n"
-                "Публічна інформація: Детальну інформацію щодо фінансової звітності,"
-                " кошторисів та річних планів закупівель університету можна переглянути на сторінці Публічна інформація ІДГУ.\n\n"
-                "Адреса: вул. Іллі Рєпіна, 12, м. Ізмаїл, Одеська область, 68610.\n"
-                "Email: idgu@ukr.net (загальний для університету).\n"
-                "Офіційний сайт: https://idgu.edu.ua/",
-             "Аудиторії: 106-109 (1 поверх)", "Бухгалтерія ІДГУ"),
-            (7, "Відділ кадрів Ізмаїльського державного гуманітарного університету (ІДГУ)\n"
-                "кадрове забезпечення діяльності університету;\n"
-                "ведення кадрового діловодства;\n"
-                "оформлення прийняття, переведення та звільнення працівників;\n"
-                "ведення особових справ працівників;\n"
-                "оформлення трудових книжок та електронних кадрових документів;\n"
-                "підготовка наказів з кадрових питань;\n"
-                "контроль за дотриманням трудового законодавства;\n"
-                "ведення обліку кадрів і підготовка статистичної звітності;\n"
-                "організація роботи з підвищення кваліфікації та атестації працівників;\n"
-                "оформлення документів щодо відпусток, стажу роботи, пенсійного забезпечення та інших кадрових процедур.\n"
-                "Для зв'язку з відділом кадрів використовуються загальні контакти університету:\n"
-                "електронна пошта: idgu@ukr.net.",
-             "Додатково: ауд. 208", "Відділ кадрів (ІДГУ)")
-        ]
+            with open(json_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
 
-        self.info_buttons = []
+                # Инициализируем хранилища в объекте класса
+                self.sidebar_data = {}
+                self.info_buttons_list = []  # Будем хранить ссылки на кнопки тут, а не искать в макете
 
-        # Знайдіть цей цикл у методі create_info_sidebar_page:
-        for index, main_txt, desc_txt, btn_title in info_sections_data:
-            btn = QPushButton(btn_title)
+                for item in data:
+                    title_text = item.get("title", "Без назви")
+                    main_text = item.get("main_text", "")
+                    additional_info = item.get("additional_info") if item.get(
+                        "additional_info") is not None else item.get("description", "")
 
-            # ПРИСВОЮЄМО ІМ'Я ОБ'ЄКТА ДЛЯ ПРИВ'ЯЗКИ СТИЛЮ З QSS:
-            btn.setObjectName("SidebarButton")
+                    btn = QPushButton(title_text)
+                    btn.setCheckable(True)
 
-            btn.setCheckable(True)
-            btn.clicked.connect(
-                lambda checked, mt=main_txt, dt=desc_txt, b=btn: self.on_info_button_clicked(mt, dt, b)
-            )
-            self.left_buttons_layout.addWidget(btn)
-            self.info_buttons.append(btn)
+                    # Сохраняем текстовые данные, привязывая к названию кнопки
+                    self.sidebar_data[title_text] = {
+                        "main_text": main_text,
+                        "additional_info": additional_info
+                    }
+
+                    # Привязываем к изолированному клику и добавляем в список
+                    btn.clicked.connect(self._safe_sidebar_click_handler)
+                    self.left_buttons_layout.addWidget(btn)
+                    self.info_buttons_list.append(btn)
+
+        except Exception as e:
+            self.info_main_text.setText(f"Помилка завантаження: {e}")
 
         return page
+
+    def _safe_sidebar_click_handler(self):
+        """Изолированный обработчик клика, полностью исключающий бесконечную рекурсию Qt."""
+        clicked_btn = self.sender()
+        if not clicked_btn:
+            return
+
+        # Временно полностью блокируем сигналы нажатой кнопки, чтобы избежать рекурсивных триггеров
+        clicked_btn.blockSignals(True)
+
+        # 1. Сбрасываем визуальное состояние (checked) у всех ОСТАЛЬНЫХ кнопок
+        for btn in getattr(self, 'info_buttons_list', []):
+            if btn != clicked_btn:
+                btn.setChecked(False)
+
+        # Принудительно держим текущую кнопку активной
+        clicked_btn.setChecked(True)
+        clicked_btn.blockSignals(False)  # Возвращаем сигналы назад
+
+        # 2. Напрямую обновляем текстовые блоки на экране из сохраненного JSON-словаря
+        btn_text = clicked_btn.text()
+        data = self.sidebar_data.get(btn_text, {})
+
+        self.info_main_text.setText(data.get("main_text", ""))
+        self.info_description.setText(data.get("additional_info", ""))
 
     def on_info_button_clicked(self, main_text, desc_text, clicked_button):
         """Обробляє кліки по кнопках інформаційного розділу."""
@@ -635,7 +604,6 @@ if __name__ == "__main__":
 
         with open(qss_path, "r", encoding="utf-8") as f:
             app.setStyleSheet(f.read())
-            print("=== СТИЛІ СУКЦЕСИВНО ЗАВАНТАЖЕНО З STYLE.QSS ===")
     except Exception as e:
         print(f"=== ПОМИЛКА ЗАВАНТАЖЕННЯ СТИЛІВ: {e} ===")
 
