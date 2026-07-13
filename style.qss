@@ -14,14 +14,15 @@ QPushButton {
     border: 2px solid #374151;
     border-radius: 15px;
     padding: 15px;
-    font-size: 20px;
+    font-size: 25px;       /* БУЛО: 20px -> Збільшили шрифт */
     font-weight: bold;
-    min-height: 55px;
-    max-height: 55px;
-    min-width: 250px;  /* ПРИМУСОВО РОБИМО КНОПКИ ОДНАКОВОЇ ШИРИНИ */
-    max-width: 280px;
-    text-align: left;  /* Вирівнювання тексту по лівому краю разом з іконками */
+    min-height: 70px;      /* БУЛО: 55px -> Збільшили висоту */
+    max-height: 70px;      /* БУЛО: 55px */
+    min-width: 350px;      /* БУЛО: 350px -> Збільшили ширину */
+    max-width: 320px;      /* БУЛО: 280px */
+    text-align: left;
 }
+
 
 QPushButton:pressed {
     background-color: #3B82F6;
@@ -30,21 +31,21 @@ QPushButton:pressed {
 
 
 /* ========================================== */
-/* СПЕЦІАЛЬНІ СТИЛІ ДЛЯ КНОПОК БІЧНОГО МЕНЮ   */
+/* СПЕЦІАЛЬНІ СТИЛІ ДЛЯ КНОПОК БІЧНОГО МЕНЮ */
 /* ========================================== */
-
 QPushButton#SidebarButton {
     background-color: #374151;
     color: white;
     border: 2px solid #4B5563;
     border-radius: 10px;
-    padding: 5px 15px !important; /* Важливо для скидання глобального padding */
-    height: 45px;
-    min-height: 45px;
-    max-height: 45px;
-    font-size: 18px;
+    padding: 5px 15px !important;
+    height: 60px;          /* БУЛО: 45px -> Збільшили висоту */
+    min-height: 60px;      /* БУЛО: 45px */
+    max-height: 60px;      /* БУЛО: 45px */
+    font-size: 16px;       /* БУЛО: 18px -> Збільшили шрифт */
     text-align: left;
 }
+
 
 QPushButton#SidebarButton:checked {
     background-color: #3B82F6;
@@ -53,40 +54,83 @@ QPushButton#SidebarButton:checked {
 
 
 /* ========================================== */
-/* СТИЛІ ДЛЯ КНОПОК ПЕРЕМИКАННЯ ПОВЕРХІВ       */
+/* СТИЛІ ДЛЯ КНОПОК ПЕРЕМИКАННЯ ПОВЕРХІВ     */
 /* ========================================== */
 
 QPushButton#FloorButton {
-    background-color: #374151;
-    color: white;
-    border: 2px solid #4B5563;
-    border-radius: 10px;
-    padding: 10px 25px;
-    font-size: 18px;
-    text-align: left;
-    min-width: 250px;
+    background-color: #1F2937;    /* Темний фон */
+    color: #E5E7EB;               /* Світлий текст */
+    border: 2px solid #374151;    /* Рамка */
+    border-radius: 8px;           /* Трохи менше закруглення кутів */
+
+    /* ЗМЕНШЕНО: Внутрішні відступи (10px зверху/знизу, 12px зліва/справа) */
+    padding: 10px 12px;
+
+    font-family: "Segoe UI";
+
+    /* ЗМЕНШЕНО: Розмір шрифту на кнопках (було більше 22px) */
+    font-size: 16px;
+    font-weight: bold;
+
+    /* ЗМЕНШЕНО: Висота кнопок (була близько 55px-60px) */
+    min-height: 40px;
+    max-height: 45px;
+
+    margin-right: 6px;            /* Відступ між кнопками */
 }
 
-QPushButton#FloorButton:checked {
-    background-color: #3B82F6;
-    border-color: #60A5FA;
+/* Стан при наведенні пальцем/мишкою */
+QPushButton#FloorButton:hover {
+    background-color: #374151;
+    border-color: #4B5563;
 }
+
+/* Стан активної (натиснутої) кнопки поверху */
+QPushButton#FloorButton:checked {
+    background-color: #2563EB;    /* Синій акцент */
+    color: #FFFFFF;
+    border: 2px solid #60A5FA;
+}
+
+/* Нижняя подпись с кабинетами на странице карты */
+QLabel#FloorDescriptionText {
+    color: #E5E7EB;
+    font-family: "Segoe UI";
+    font-size: 24px;            /* Увеличили размер шрифта кабинетов */
+    font-weight: 500;
+    padding: 15px;
+    margin-top: 15px;
+    background-color: #111827;  /* Темный фон в тон интерфейса */
+    border-radius: 10px;
+}
+
 
 /* =================================================== */
 /* Стиль для головного текстового блоку інформації     */
 /* =================================================== */
 
-/* Стиль для головного текстового блоку інформації справа */
+/* Стандартний вигляд блоку (для великого тексту факультетів) */
 QLabel#InfoMainText {
     background-color: #111827;
     border: 2px dashed #374151;
     border-radius: 15px;
-    padding: 20px;
-    color: white;
+    padding: 35px;             /* Збільшили внутрішні відступи для простору */
+    color: #FFFFFF;            /* Чистий білий колір для максимальної контрастності */
+    font-family: "Segoe UI";
+    font-size: 28px;           /* ЗБІЛЬШЕНО: великий шрифт для тексту факультетів */
+    font-weight: 500;          /* Трохи щільніший текст, щоб краще читався здалеку */
+    line-height: 1.5;          /* Комфортна відстань між рядками */
+    margin: 20px;
+}
 
-    /* ВИПРАВЛЕННЯ: примусове центрування тексту всередині блоку */
-    qproperty-alignment: 'AlignCenter';
-    margin: 40px; /* Створює красивий відступ від країв екрана */
+/* ОКРЕМІ НАЛАШТУВАННЯ ДЛЯ ПОЧАТКОВОГО НАПИСУ (Оберіть розділ...) */
+QLabel#InfoMainText[state="welcome"] {
+    color: #9CA3AF;            /* М'який сірий колір підказки */
+    font-size: 36px;           /* ЗБІЛЬШЕНО: великий шрифт для стартового напису */
+    font-style: italic;        /* Курсив */
+    font-weight: normal;
+    border: 2px solid #4B5563;
+    background-color: #1F2937;
 }
 
 /* Інщі стилі */
@@ -114,12 +158,17 @@ QLabel#LogoErrorLabel, QLabel#WelcomeTitle, QLabel#WelcomeHint {
 QLabel#WelcomeTitle { color: #3B82F6; margin-top: 20px; margin-bottom: 5px; }
 QLabel#WelcomeHint { color: #9CA3AF; }
 
-
 /* Додатковий опис структури під головним текстом */
 QLabel#InfoDescription {
     color: #9CA3AF;
-    margin-top: 10px;
+    font-family: "Segoe UI";
+    font-size: 20px;           /* ЗБІЛЬШЕНО: чіткий розмір для додаткових даних */
+    font-weight: bold;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    qproperty-alignment: 'AlignCenter';
 }
+
 
 /* Заголовок сторінки карти поверхів */
 QLabel#MapTitle {

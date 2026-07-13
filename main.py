@@ -352,7 +352,7 @@ class UniversityKiosk(QWidget):
             logo_label.setObjectName("LogoErrorLabel")
 
         # 2. ГОЛОВНИЙ ВІТАЛЬНИЙ ЗАГОЛОВОК
-        welcome_title = QLabel("Вітаємо в Ізмаїльському Державному Гуманітарному Університеті!")
+        welcome_title = QLabel("Вітаємо в Ізмаїльському державному гуманітарному університеті!")
         welcome_title.setFont(QFont("Segoe UI", 28, QFont.Weight.Bold))
         welcome_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         welcome_title.setWordWrap(True)
@@ -390,92 +390,83 @@ class UniversityKiosk(QWidget):
         # Перевіряємо, чи кіоск зараз НЕ на головній сторінці (індекс 0)
         if self.pages_container.currentIndex() != 0:
             self.pages_container.setCurrentIndex(0) # Скидаємо сторінку на головну
-            print("⏳ Екран кіоску автоматично скинуто на головну сторінку.")
+            print("⏳ Екран автоматично скинуто на головну сторінку.")
 
     def create_interactive_map_page(self):
-        """Створює сторінку інтерактивної мапи з кнопками перемикання поверхів."""
+        """Створює сторінку інтерактивної мапи з JSON-даними."""
         page = QWidget()
         layout = QVBoxLayout(page)
 
-        title = QLabel("🗺 ПЛАН НАВЧАЛЬНОГО КОРПУСУ")
-        title.setFont(QFont("Segoe UI", 26, QFont.Weight.Bold))
-        # ЗАМІНА СТИЛЮ НА ІМ'Я ОБ'ЄКТА:
-        title.setObjectName("MapTitle")
-        layout.addWidget(title)
-
-        # Контейнер для кнопок поверхів (горизонтальний)
-        floor_buttons_layout = QHBoxLayout()
-        floor_buttons_layout.setSpacing(15)
-        layout.addLayout(floor_buttons_layout)
-
-        # Елемент для відображення карти
+        # Створення елементів інтерфейсу
         self.map_image_label = QLabel()
         self.map_image_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # ЗАМІНА СТИЛЮ НА ІМ'Я ОБ'ЄКТА:
-        self.map_image_label.setObjectName("MapImageContainer")
-
-        layout.addWidget(self.map_image_label, 1)
-
-        # Опис поверху нижче мапи
         self.map_description = QLabel()
-        self.map_description.setFont(QFont("Segoe UI", 18))
-        self.map_description.setWordWrap(True)
-        # ЗАМІНА СТИЛЮ НА ІМ'Я ОБ'ЄКТА:
-        self.map_description.setObjectName("MapDescription")
-        layout.addWidget(self.map_description)
 
-        floors_data = [
-            (1, "floor1.png", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.", "1 Поверх"),
-            (2, "floor22.png", "2 ПОВЕРХ: Адміністрація, Кафедра вищої математики.", "2 Поверх"),
-            (3, "floor32.png", "3 ПОВЕРХ: Деканат, Аудиторії лекційні (301-305).", "3 Поверх"),
-            (4, "floor42.png", "4 ПОВЕРХ: Аудиторії лекційні (401-405), Кафедри.", "4 Поверх"),
-            (5, "floor52.png", "5 ПОВЕРХ: Читальний зал, Комп'ютерні класи (501-505).", "5 Поверх"),
-            (6, "floor1_it2.png", "КОРПУС ЦНІТ: Центр новітніх інформаційних технологій.", "1 Поверх, ЦНІТ"),
-            (7, "floor2_sport2.png", "СПОРТИВНИЙ КОМПЛЕКС: Спортивний зал, роздягальні.", "2 Поверх, Спортзал")
-        ]
+        floor_buttons_layout = QHBoxLayout()
         self.floor_buttons = []
+        self.map_data_store = {}
 
-        # ЦИКЛ СТВОРЕННЯ КНОПОК ПОВЕРХІВ
-        for index, main_txt, desc_txt, btn_title in floors_data:
-            btn = QPushButton(btn_title)
+        # --- Завантаження даних ---
+        try:
+            import os
+            import json
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+            json_path = os.path.join(base_dir, "data.json")
 
-            # ПРИСВОЮЄМО ІМ'Я ОБ'ЄКТА ДЛЯ ПРИВ'ЯЗКИ СТИЛЮ З QSS:
-            btn.setObjectName("FloorButton")
+            if os.path.exists(json_path):
+                with open(json_path, "r", encoding="utf-8") as f:
+                    floors_source = json.load(f).get("floors_data", [])
 
-            btn.setCheckable(True)
-            btn.clicked.connect(
-                lambda checked, mt=main_txt, dt=desc_txt, b=btn: self.on_info_button_clicked(mt, dt, b)
-            )
-            floor_buttons_layout.addWidget(btn)
-            self.floor_buttons.append(btn)
+                    for item in floors_source:
+                        btn = QPushButton(item.get("name", "Поверх"))
+                        btn.setObjectName("FloorButton")
+                        btn.setCheckable(True)
 
-        # Ініціалізуємо карту першим поверхом при старті
-        self.show_floor(1, "floor1.png", "1 ПОВЕРХ: Приймальна комісія, Гардероб, Медпункт.")
+                        # Зберігаємо шляхи та описи
+                        self.map_data_store[btn.text()] = {
+                            "image": os.path.join(base_dir, item.get("image_path", "")),
+                            "description": item.get("description", "")
+                        }
+                        # Підключаємо сигнал БЕЗ lambda
+                        btn.clicked.connect(self.show_floor)
+                        floor_buttons_layout.addWidget(btn)
+                        self.floor_buttons.append(btn)
+
+            layout.addLayout(floor_buttons_layout)
+            layout.addWidget(self.map_image_label, 1)
+            layout.addWidget(self.map_description)
+
+            # Ініціалізація першого поверху
+            if self.floor_buttons:
+                self.floor_buttons[0].click()
+
+        except Exception as e:
+            self.map_description.setText(f"Помилка: {e}")
 
         return page
 
-    def show_floor(self, floor_num, img_path, description_text):
-        """Оновлює стан кнопок мапи, завантажує та відображає картинку поверху."""
-        # Керуємо станом виділення кнопок поверхів
-        for index, btn in enumerate(self.floor_buttons):
-            btn.setChecked((index + 1) == floor_num)
+    def show_floor(self):
+        """Оновлює картинку та опис на основі натиснутої кнопки."""
+        clicked_btn = self.sender()
+        if not clicked_btn: return
 
-        pixmap = QPixmap(img_path)
-        if not pixmap.isNull():
-            scaled_pixmap = pixmap.scaled(
-                800, 550,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation
-            )
-            self.map_image_label.setPixmap(scaled_pixmap)
-        else:
-            self.map_image_label.setText(f"[ Картинку {img_path} не знайдено ]")
+        # Логіка радіокнопок
+        for btn in self.floor_buttons:
+            btn.blockSignals(True)
+            btn.setChecked(btn == clicked_btn)
+            btn.blockSignals(False)
 
-        self.map_description.setText(description_text)
+        # Оновлення контенту з map_data_store
+        data = self.map_data_store.get(clicked_btn.text(), {})
+        self.map_description.setText(data.get("description", ""))
 
-        # === НОВИЙ КОД: Скидаємо таймер бездіяльності при зміні поверху ===
-        if hasattr(self, 'inactivity_timer'):
-            self.inactivity_timer.start()
+        import os
+        img_path = data.get("image", "")
+        if img_path and os.path.exists(img_path):
+            pixmap = QPixmap(img_path)
+            # Масштабування
+            scaled = pixmap.scaled(self.map_image_label.size(), Qt.AspectRatioMode.KeepAspectRatio)
+            self.map_image_label.setPixmap(scaled)
 
     def create_info_sidebar_page(self):
         """Створює сторінку інформації з бічним меню."""
@@ -496,26 +487,33 @@ class UniversityKiosk(QWidget):
         # --- ЛІВА ПАНЕЛЬ (КНОПКИ) ---
         self.left_buttons_layout = QVBoxLayout()
         self.left_buttons_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        self.left_buttons_layout.addSpacing(30)
         content_layout.addLayout(self.left_buttons_layout)
 
         # --- ПРАВА ПАНЕЛЬ (ІНФОРМАЦІЯ) ---
         right_info_layout = QVBoxLayout()
         content_layout.addLayout(right_info_layout, 1)
 
+        # Створюємо початковий текст
         self.info_main_text = QLabel("Оберіть розділ зліва для перегляду деталей.")
-        self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.info_main_text.setWordWrap(True)
-        self.info_main_text.setFont(QFont("Segoe UI", 20))
         self.info_main_text.setObjectName("InfoMainText")
+
+        # СТАВИТЬ ПОЧАТКОВИЙ НАПИС ПО ЦЕНТРУ
+        self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Додаємо унікальну мітку стилю для початкового стану
+        self.info_main_text.setProperty("state", "welcome")
+
         right_info_layout.addWidget(self.info_main_text, 1)
 
         self.info_description = QLabel()
         self.info_description.setFont(QFont("Segoe UI", 18))
         self.info_description.setWordWrap(True)
         self.info_description.setObjectName("InfoDescription")
+        self.info_description.setAlignment(Qt.AlignmentFlag.AlignCenter)
         right_info_layout.addWidget(self.info_description)
 
-        # --- АБСОЛЮТНО БЕЗПЕЧНЕ ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ ---
+        # --- ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ З JSON ---
         try:
             import os
             base_dir = os.path.dirname(os.path.abspath(__file__))
@@ -523,10 +521,8 @@ class UniversityKiosk(QWidget):
 
             with open(json_path, "r", encoding="utf-8") as f:
                 data = json.load(f)
-
-                # Инициализируем хранилища в объекте класса
                 self.sidebar_data = {}
-                self.info_buttons_list = []  # Будем хранить ссылки на кнопки тут, а не искать в макете
+                self.info_buttons_list = []
 
                 for item in data:
                     title_text = item.get("title", "Без назви")
@@ -536,14 +532,13 @@ class UniversityKiosk(QWidget):
 
                     btn = QPushButton(title_text)
                     btn.setCheckable(True)
+                    btn.setObjectName("SidebarButton")
 
-                    # Сохраняем текстовые данные, привязывая к названию кнопки
                     self.sidebar_data[title_text] = {
                         "main_text": main_text,
                         "additional_info": additional_info
                     }
 
-                    # Привязываем к изолированному клику и добавляем в список
                     btn.clicked.connect(self._safe_sidebar_click_handler)
                     self.left_buttons_layout.addWidget(btn)
                     self.info_buttons_list.append(btn)
@@ -554,26 +549,28 @@ class UniversityKiosk(QWidget):
         return page
 
     def _safe_sidebar_click_handler(self):
-        """Изолированный обработчик клика, полностью исключающий бесконечную рекурсию Qt."""
+        """Обробник кліку із динамічним вирівнюванням тексту."""
         clicked_btn = self.sender()
         if not clicked_btn:
             return
 
-        # Временно полностью блокируем сигналы нажатой кнопки, чтобы избежать рекурсивных триггеров
         clicked_btn.blockSignals(True)
-
-        # 1. Сбрасываем визуальное состояние (checked) у всех ОСТАЛЬНЫХ кнопок
         for btn in getattr(self, 'info_buttons_list', []):
             if btn != clicked_btn:
                 btn.setChecked(False)
-
-        # Принудительно держим текущую кнопку активной
         clicked_btn.setChecked(True)
-        clicked_btn.blockSignals(False)  # Возвращаем сигналы назад
+        clicked_btn.blockSignals(False)
 
-        # 2. Напрямую обновляем текстовые блоки на экране из сохраненного JSON-словаря
         btn_text = clicked_btn.text()
         data = self.sidebar_data.get(btn_text, {})
+
+        # КОЛИ ВИБРАНО ФАКУЛЬТЕТ: Змінюємо вирівнювання на ЛІВИЙ КРАЙ
+        self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+        # Скидаємо початковий стан стилю, щоб увімкнувся стандартний вигляд тексту факультету
+        self.info_main_text.setProperty("state", "normal")
+        # Оновлюємо стилі в реальному часі
+        self.info_main_text.style().unpolish(self.info_main_text)
+        self.info_main_text.style().polish(self.info_main_text)
 
         self.info_main_text.setText(data.get("main_text", ""))
         self.info_description.setText(data.get("additional_info", ""))
