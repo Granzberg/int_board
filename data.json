@@ -34,17 +34,6 @@
       "name": "СПОРТИВНИЙ ЗАЛ",
       "image_path": "maps/floor2_sport2.png",
       "description": "2 ПОВЕРХ: Деканат, Кафедра загальної педагогіки, ауд. 201-215."
-    },
-    {
-  "floors_data": [],
-  "contacts": {
-    "title": "📞 КОНТАКТНА ІНФОРМАЦІЯ УНІВЕРСИТЕТУ",
-    "admission_committee": "<b>Приймальна комісія:</b> +38 (094) 998-96-07, +38 (068) 031-39-92",
-    "email": "<b>Email:</b> vstupidgu@gmail.com, idgu@ukr.net",
-    "address": "<b>Адреса:</b> вул. Іллі Ріпина, 12"
-  }
-}
-
-
+    }
   ]
 }
