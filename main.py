@@ -90,9 +90,9 @@ class UniversityKiosk(QWidget):
         self.btn_contacts.setObjectName("MainMenuButton")
 
         # Кнопка виходу (Тимчасова! Щоб ви могли закрити програму під час тестів)
-        self.btn_exit = QPushButton("❌ Вихід (Тест)", self)
+        # self.btn_exit = QPushButton("❌ Вихід (Тест)", self)
         # Додаємо ім'я для зв'язку з ExitTestButton у qss
-        self.btn_exit.setObjectName("ExitTestButton")
+        # self.btn_exit.setObjectName("ExitTestButton")
 
         # Додаємо кнопки в ліве меню
         left_menu.addWidget(self.btn_home)
@@ -101,7 +101,7 @@ class UniversityKiosk(QWidget):
         left_menu.addWidget(self.btn_schedule)
         left_menu.addWidget(self.btn_contacts)
         left_menu.addStretch()  # Штовхає кнопку виходу до самого низу
-        left_menu.addWidget(self.btn_exit)
+        # left_menu.addWidget(self.btn_exit)
 
         # ---------------- ПРАВА ПАНЕЛЬ (СТОРІНКИ) ----------------
         # QStackedWidget — це "стопка" сторінок. Показується тільки одна.
@@ -135,7 +135,7 @@ class UniversityKiosk(QWidget):
         self.btn_map.clicked.connect(lambda: self.pages_container.setCurrentIndex(2))
         self.btn_schedule.clicked.connect(lambda: self.pages_container.setCurrentIndex(3))
         self.btn_contacts.clicked.connect(lambda: self.pages_container.setCurrentIndex(4))
-        self.btn_exit.clicked.connect(self.close)  # Закриття програми
+        #self.btn_exit.clicked.connect(self.close)  # Закриття програми
 
         # ---------------- ТАЙМЕР БЕЗДІЯЛЬНОСТІ ----------------
         self.inactivity_timer = QTimer(self)
@@ -356,9 +356,19 @@ class UniversityKiosk(QWidget):
         layout.setSpacing(25)
 
         # 1. ЕЛЕМЕНТ ДЛЯ ВІДОБРАЖЕННЯ ЛОГОТИПУ
+        # 1. ЕЛЕМЕНТ ДЛЯ ВІДОБРАЖЕННЯ ЛОГОТИПУ
         logo_label = QLabel()
         logo_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        pixmap = QPixmap("logo.png")
+
+        # Визначаємо шлях до папки з .exe
+        if getattr(sys, 'frozen', False):
+            base_dir = os.path.dirname(sys.executable)
+        else:
+            base_dir = os.path.dirname(os.path.abspath(__file__))
+
+        logo_path = os.path.join(base_dir, "logo.png")
+        pixmap = QPixmap(logo_path)
+
         if not pixmap.isNull():
             logo_label.setPixmap(pixmap.scaled(
                 350, 350,
@@ -437,9 +447,11 @@ class UniversityKiosk(QWidget):
 
         # --- Завантаження даних ---
         try:
-            import os
-            import json
-            base_dir = os.path.dirname(os.path.abspath(__file__))
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.dirname(sys.executable)
+            else:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+
             json_path = os.path.join(base_dir, "data.json")
 
             if os.path.exists(json_path):
@@ -547,6 +559,13 @@ class UniversityKiosk(QWidget):
         # Додаємо унікальну мітку стилю для початкового стану
         self.info_main_text.setProperty("state", "welcome")
 
+        self.info_main_text.setTextFormat(Qt.TextFormat.RichText)
+
+        # Оновлюємо стилі в реальному часі
+       # self.info_main_text.style().unpolish(self.info_main_text)
+       # self.info_main_text.style().polish(self.info_main_text)
+       # self.info_main_text.setText(data.get("main_text", ""))
+
         right_info_layout.addWidget(self.info_main_text, 1)
 
         self.info_description = QLabel()
@@ -558,16 +577,22 @@ class UniversityKiosk(QWidget):
 
         # --- ДИНАМІЧНЕ ЗАВАНТАЖЕННЯ З JSON ---
         try:
-            import os
-            base_dir = os.path.dirname(os.path.abspath(__file__))
+            # ВИПРАВЛЕННЯ: Кажемо програмі дивитися в папку з файлом .exe, а не в Temp
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.dirname(sys.executable)
+            else:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+
             json_path = os.path.join(base_dir, "structure_data.json")
 
-            with open(json_path, "r", encoding="utf-8") as f:
-                data = json.load(f)
-                self.sidebar_data = {}
-                self.info_buttons_list = []
+            # Ініціалізуємо змінні заздалегідь на випадок помилки
+            self.sidebar_data = {}
+            self.info_buttons_list = []
 
-                for item in data:
+            with open(json_path, "r", encoding="utf-8") as f:
+                json_data = json.load(f)  # Змінено назву на json_data, щоб не плутати
+
+                for item in json_data:
                     title_text = item.get("title", "Без назви")
                     main_text = item.get("main_text", "")
                     additional_info = item.get("additional_info") if item.get(
@@ -581,13 +606,15 @@ class UniversityKiosk(QWidget):
                         "main_text": main_text,
                         "additional_info": additional_info
                     }
-
                     btn.clicked.connect(self._safe_sidebar_click_handler)
                     self.left_buttons_layout.addWidget(btn)
                     self.info_buttons_list.append(btn)
 
         except Exception as e:
-            self.info_main_text.setText(f"Помилка завантаження: {e}")
+            # Якщо виникла помилка, виводимо її на екран, а замість тексту факультетів ставимо пусті рядки
+            self.info_main_text.setText(f"Помилка завантаження файлу JSON: {e}")
+            self.info_description.setText("")
+            print(f"Помилка з JSON: {e}")
 
         return page
 
@@ -609,13 +636,50 @@ class UniversityKiosk(QWidget):
 
         # КОЛИ ВИБРАНО ФАКУЛЬТЕТ: Змінюємо вирівнювання на ЛІВИЙ КРАЙ
         self.info_main_text.setAlignment(Qt.AlignmentFlag.AlignLeft | Qt.AlignmentFlag.AlignTop)
+
         # Скидаємо початковий стан стилю, щоб увімкнувся стандартний вигляд тексту факультету
         self.info_main_text.setProperty("state", "normal")
+
+        # Примусово кажемо QLabel розпізнавати HTML
+        self.info_main_text.setTextFormat(Qt.TextFormat.RichText)
+
         # Оновлюємо стилі в реальному часі
         self.info_main_text.style().unpolish(self.info_main_text)
         self.info_main_text.style().polish(self.info_main_text)
 
-        self.info_main_text.setText(data.get("main_text", ""))
+        # Отримуємо чистий текст із JSON
+        raw_text = data.get("main_text", "")
+
+        # Створюємо глобальні стилі для HTML тексту всередині QLabel
+        # Встановлюємо гарні інтервали списку та базовий шрифт
+        html_css = """
+                <style>
+                    body { 
+                        color: #FFFFFF; 
+                        font-size: 18px; 
+                        font-family: 'Segoe UI', Arial, sans-serif; 
+                        
+                    }
+                    ul { 
+                        font-size: 16px;
+                        margin-top: 2px;   /* Відступ від верхнього тексту до початку списку */
+                        margin-bottom: 2px;/* Відступ від кінця списку до наступного тексту */
+                        margin-left: 20px;  /* Відступ списку зліва */
+                        padding-left: 0px;
+                    }
+                    li { 
+                        margin-bottom: 0px;  /* МІНІМАЛЬНИЙ ВІДСТУП МІЖ ПУНКТАМИ (зменшіть до 0px, якщо треба ще щільніше) */
+                        margin-top: 0px;     /* Прибираємо верхній відступ кожного пункту */
+                        line-height: 80%;   /* Компактний інтервал всередині самого пункту, якщо текст переноситься */
+                    }
+                </style>
+                """
+
+        # Об'єднуємо стилі з текстом та виводимо в один прийом
+        self.info_main_text.setText(html_css + raw_text)
+
+        # Для додаткового тексту також увімкнемо RichText про всяк випадок
+        self.info_description.setTextFormat(Qt.TextFormat.RichText)
         self.info_description.setText(data.get("additional_info", ""))
 
     def on_info_button_clicked(self, main_text, desc_text, clicked_button):
@@ -656,9 +720,11 @@ class UniversityKiosk(QWidget):
 
         # --- ЗАВАНТАЖЕННЯ З JSON ---
         try:
-            import os
-            import json
-            base_dir = os.path.dirname(os.path.abspath(__file__))
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.dirname(sys.executable)
+            else:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+
             json_path = os.path.join(base_dir, "data.json")
 
             if os.path.exists(json_path):
@@ -706,7 +772,14 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
 
     try:
-        current_dir = os.path.dirname(os.path.abspath(__file__))
+        # ПРАВИЛЬНЕ ВИЗНАЧЕННЯ ПАПКИ ДЛЯ .EXE ТА С КРИПТІВ:
+        if getattr(sys, 'frozen', False):
+            # Якщо програма запущена як зібраний .exe файл
+            current_dir = os.path.dirname(sys.executable)
+        else:
+            # Якщо програма запущена як звичайний скрипт в PyCharm
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+
         qss_path = os.path.join(current_dir, "style.qss")
         with open(qss_path, "r", encoding="utf-8") as f:
             app.setStyleSheet(f.read())

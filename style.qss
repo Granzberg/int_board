@@ -112,13 +112,19 @@ QLabel#InfoMainText {
     background-color: #111827;
     border: 2px dashed #374151;
     border-radius: 15px;
-    padding: 35px;             /* Збільшили внутрішні відступи для простору */
+    padding: 25px;             /* Збільшили внутрішні відступи для простору */
     color: #FFFFFF;            /* Чистий білий колір для максимальної контрастності */
     font-family: "Segoe UI";
     font-size: 20px;           /* ЗБІЛЬШЕНО: великий шрифт для тексту факультетів */
     font-weight: 500;          /* Трохи щільніший текст, щоб краще читався здалеку */
     line-height: 1.5;          /* Комфортна відстань між рядками */
     margin: 20px;
+
+    /* Замість звичайного padding використовуємо внутрішній індент Qt */
+    qproperty-indent: 15;
+
+    /* Якщо потрібно примусово скинути колір фону самого віджета */
+    background-color: transparent;
 }
 
 /* ОКРЕМІ НАЛАШТУВАННЯ ДЛЯ ПОЧАТКОВОГО НАПИСУ (Оберіть розділ...) */
@@ -242,4 +248,4 @@ QLabel#ContactInfoLine {
     padding: 25px 35px;
     margin: 5px 0px;
 }
-}
+
